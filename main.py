@@ -15,6 +15,6 @@ def type_letters():
 
 if __name__ == '__main__':
     #hello_world()
-    #move_mouse()
+    move_mouse()
     #type_words()
-    type_letters()
+    #type_letters()

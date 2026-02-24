@@ -1,19 +1,21 @@
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtCore import Qt, QRect
-
-# Screen dimensions (these can be adjusted if necessary)
-SCREEN_WIDTH = 2880
-SCREEN_HEIGHT = 1800
 
 class OverlayWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        # Automatically detect screen dimensions
+        screen = QApplication.primaryScreen()
+        geometry = screen.geometry()
+        self.screen_width = geometry.width()
+        self.screen_height = geometry.height()
+        
         self.rectangles = []  # Initialize a list to hold rectangle definitions
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)  # Fullscreen overlay
+        self.setGeometry(0, 0, self.screen_width, self.screen_height)  # Fullscreen overlay
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.show()

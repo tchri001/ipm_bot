@@ -33,4 +33,6 @@ if __name__ == "__main__":
     overlay.add_rectangle(800, 600, 150, 100)  # Rectangle 3
 
     print("Box has been created!")
-    sys.exit(app.exec_())
+    sys.exit(app.exec_())    # Screen dimensions - change these to match YOUR screen resolution
+    SCREEN_WIDTH = 1920  # Change this
+    SCREEN_HEIGHT = 1080  # Change thisq

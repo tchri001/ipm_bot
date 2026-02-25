@@ -284,17 +284,34 @@ def open_bluestacks():
         print(f"Error opening BlueStacks: {e}")
 
 
-def zoom_to_max_then_down_one():
+def zoom_to_max_then_down_one(scroll_anchor=None):
     """
-    Zooms in to maximum by scrolling up 5 times with Ctrl held,
-    then zooms out by 1 level by scrolling down 1 time with Ctrl held.
+    Zoom sequence:
+    1) Hold modifier and scroll up 5 times
+    2) Hold modifier and scroll down 5 times
+
+    Args:
+        scroll_anchor: Optional tuple (x, y). If provided, mouse is moved to this
+            safe point before and during scrolling to avoid hovering interactive UI.
     """
-    time.sleep(2)  # Wait for BlueStacks to be fully loaded after F11
+    time.sleep(2)  # Wait for BlueStacks to be ready before zoom input
+
+    def _move_to_anchor():
+        if scroll_anchor is None:
+            return
+        try:
+            anchor_x, anchor_y = scroll_anchor
+            pyautogui.moveTo(anchor_x, anchor_y, duration=0.05)
+            log_input_event('mouse_move', '', '', f'x={anchor_x};y={anchor_y};phase=zoom_anchor')
+        except Exception:
+            pass
     
     # Zoom in to maximum (hold Ctrl, scroll up 5 times, then release Ctrl)
+    _move_to_anchor()
     pyautogui.keyDown(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
     for i in range(5):
+        _move_to_anchor()
         pyautogui.scroll(100)  # Scroll up (positive value)
         log_input_event('mouse_scroll', '', '', f'amount=100;zoom_in_iter={i+1}')
         time.sleep(0.1)
@@ -305,15 +322,17 @@ def zoom_to_max_then_down_one():
     time.sleep(0.5)
     
     # Zoom out by a set amount (hold Ctrl, scroll down 5 times, then release Ctrl)
+    _move_to_anchor()
     pyautogui.keyDown(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
     for i in range(5):
-        pyautogui.scroll(-50)  # Scroll down (negative value)
-        log_input_event('mouse_scroll', '', '', f'amount=-50;zoom_out_iter={i+1}')
+        _move_to_anchor()
+        pyautogui.scroll(-40)  # Scroll down (negative value)
+        log_input_event('mouse_scroll', '', '', f'amount=-40;zoom_out_iter={i+1}')
         time.sleep(0.1)
     pyautogui.keyUp(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
-    print("Zoomed out by 1 level")
+    print("Zoomed out by configured amount")
 
 
 def get_currency_value_with_visualization(region=(0, 0, 1920, 150), display=True, debug_dir=None):

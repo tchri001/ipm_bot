@@ -1,7 +1,7 @@
 """Draw a labeled grid overlay on the screen to identify regions.
 
-This version uses tkinter to create a true transparent, click-through overlay
-that stays on top of other applications (including BlueStacks).
+This tool captures a static screenshot of the configured screen region,
+draws a labeled grid on top, and displays it in a topmost window.
 
 Usage:
     python boxer.py

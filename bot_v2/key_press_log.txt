@@ -1,17 +1,18 @@
 timestamp,event,key,scan_code,details
-2026-02-25 23:28:50.621688,mouse_move,,,x=1450;y=1450
-2026-02-25 23:28:52.626508,down,left ctrl,-162,keyboard_hook
-2026-02-25 23:28:53.226683,mouse_scroll,,,amount=100;zoom_in_iter=1
-2026-02-25 23:28:53.429993,mouse_scroll,,,amount=100;zoom_in_iter=2
-2026-02-25 23:28:53.631614,mouse_scroll,,,amount=100;zoom_in_iter=3
-2026-02-25 23:28:53.836387,mouse_scroll,,,amount=100;zoom_in_iter=4
-2026-02-25 23:28:54.038958,mouse_scroll,,,amount=100;zoom_in_iter=5
-2026-02-25 23:28:54.142437,up,left ctrl,-162,keyboard_hook
-2026-02-25 23:28:55.144569,down,left ctrl,-162,keyboard_hook
-2026-02-25 23:28:55.747065,mouse_scroll,,,amount=-50;zoom_out_iter=1
-2026-02-25 23:28:55.949392,mouse_scroll,,,amount=-50;zoom_out_iter=2
-2026-02-25 23:28:56.156730,mouse_scroll,,,amount=-50;zoom_out_iter=3
-2026-02-25 23:28:56.365002,mouse_scroll,,,amount=-50;zoom_out_iter=4
-2026-02-25 23:28:56.567367,mouse_scroll,,,amount=-50;zoom_out_iter=5
-2026-02-25 23:28:56.668839,up,left ctrl,-162,keyboard_hook
-2026-02-25 23:29:06.199025,down,q,16,keyboard_hook
+2026-02-25 23:36:13.285843,mouse_move,,,x=2050;y=1050
+2026-02-25 23:36:13.392807,mouse_click,,,x=2050;y=1050;button=left
+2026-02-25 23:36:15.395049,down,left ctrl,-162,keyboard_hook
+2026-02-25 23:36:15.997290,mouse_scroll,,,amount=100;zoom_in_iter=1
+2026-02-25 23:36:16.201268,mouse_scroll,,,amount=100;zoom_in_iter=2
+2026-02-25 23:36:16.404389,mouse_scroll,,,amount=100;zoom_in_iter=3
+2026-02-25 23:36:16.609476,mouse_scroll,,,amount=100;zoom_in_iter=4
+2026-02-25 23:36:16.811239,mouse_scroll,,,amount=100;zoom_in_iter=5
+2026-02-25 23:36:16.912647,up,left ctrl,-162,keyboard_hook
+2026-02-25 23:36:17.914481,down,left ctrl,-162,keyboard_hook
+2026-02-25 23:36:18.517395,mouse_scroll,,,amount=-40;zoom_out_iter=1
+2026-02-25 23:36:18.719855,mouse_scroll,,,amount=-40;zoom_out_iter=2
+2026-02-25 23:36:18.925476,mouse_scroll,,,amount=-40;zoom_out_iter=3
+2026-02-25 23:36:19.130691,mouse_scroll,,,amount=-40;zoom_out_iter=4
+2026-02-25 23:36:19.334792,mouse_scroll,,,amount=-40;zoom_out_iter=5
+2026-02-25 23:36:19.436776,up,left ctrl,-162,keyboard_hook
+2026-02-25 23:36:26.412712,down,q,16,keyboard_hook

@@ -36,7 +36,7 @@ def start_keypress_logger(log_path):
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
     key_log_path = os.path.join(base_dir, 'key_press_log.txt')
-    enable_focus_click = False  # Toggle this on/off for pre-zoom focus click
+    enable_focus_click = True  # Toggle this on/off for pre-zoom focus click
     set_input_log_path(key_log_path)
     key_log_hook = start_keypress_logger(key_log_path)
     print(f"Logging key events to: {key_log_path}")
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     open_bluestacks()
 
     # Move mouse to a grid location before any scrolling/zoom occurs
-    grid_target = "O15"  # Change this to your target grid cell
+    grid_target = "U11"  # Change this to your target grid cell
     coords = get_grid_midpoint(grid_target)
     if coords:
         x, y = coords
@@ -67,8 +67,16 @@ if __name__ == "__main__":
     else:
         print(f"Could not find grid coordinates for {grid_target}")
 
+    # Choose a safe area for scroll-based zooming (avoid interactive UI elements)
+    zoom_anchor_target = "U11"  # Set this to a non-interactive grid cell
+    zoom_anchor_coords = get_grid_midpoint(zoom_anchor_target)
+    if zoom_anchor_coords:
+        print(f"Using zoom anchor {zoom_anchor_target} at {zoom_anchor_coords}")
+    else:
+        print(f"Could not find zoom anchor coordinates for {zoom_anchor_target}; using current mouse position")
+
     # Continue with zooming
-    zoom_to_max_then_down_one()
+    zoom_to_max_then_down_one(scroll_anchor=zoom_anchor_coords)
 
     # Currency monitor region bounded by I1..P2
     currency_region = get_grid_region("I1", "P2")

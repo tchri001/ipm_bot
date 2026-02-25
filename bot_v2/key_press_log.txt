@@ -1,18 +1,20 @@
 timestamp,event,key,scan_code,details
-2026-02-25 23:36:13.285843,mouse_move,,,x=2050;y=1050
-2026-02-25 23:36:13.392807,mouse_click,,,x=2050;y=1050;button=left
-2026-02-25 23:36:15.395049,down,left ctrl,-162,keyboard_hook
-2026-02-25 23:36:15.997290,mouse_scroll,,,amount=100;zoom_in_iter=1
-2026-02-25 23:36:16.201268,mouse_scroll,,,amount=100;zoom_in_iter=2
-2026-02-25 23:36:16.404389,mouse_scroll,,,amount=100;zoom_in_iter=3
-2026-02-25 23:36:16.609476,mouse_scroll,,,amount=100;zoom_in_iter=4
-2026-02-25 23:36:16.811239,mouse_scroll,,,amount=100;zoom_in_iter=5
-2026-02-25 23:36:16.912647,up,left ctrl,-162,keyboard_hook
-2026-02-25 23:36:17.914481,down,left ctrl,-162,keyboard_hook
-2026-02-25 23:36:18.517395,mouse_scroll,,,amount=-40;zoom_out_iter=1
-2026-02-25 23:36:18.719855,mouse_scroll,,,amount=-40;zoom_out_iter=2
-2026-02-25 23:36:18.925476,mouse_scroll,,,amount=-40;zoom_out_iter=3
-2026-02-25 23:36:19.130691,mouse_scroll,,,amount=-40;zoom_out_iter=4
-2026-02-25 23:36:19.334792,mouse_scroll,,,amount=-40;zoom_out_iter=5
-2026-02-25 23:36:19.436776,up,left ctrl,-162,keyboard_hook
-2026-02-25 23:36:26.412712,down,q,16,keyboard_hook
+2026-02-26 00:18:57.736001,mouse_move,,,x=1950;y=850
+2026-02-26 00:18:57.841388,mouse_click,,,x=1950;y=850;button=left
+2026-02-26 00:18:58.424545,mouse_move,,,x=1950;y=850;phase=pre_zoom_reposition
+2026-02-26 00:18:58.533126,mouse_click,,,x=1950;y=850;button=left;phase=pre_zoom_reposition
+2026-02-26 00:19:00.535587,down,left ctrl,-162,keyboard_hook
+2026-02-26 00:19:01.137593,mouse_scroll,,,amount=100;zoom_in_iter=1
+2026-02-26 00:19:01.341443,mouse_scroll,,,amount=100;zoom_in_iter=2
+2026-02-26 00:19:01.543818,mouse_scroll,,,amount=100;zoom_in_iter=3
+2026-02-26 00:19:01.745870,mouse_scroll,,,amount=100;zoom_in_iter=4
+2026-02-26 00:19:01.951484,mouse_scroll,,,amount=100;zoom_in_iter=5
+2026-02-26 00:19:02.053089,up,left ctrl,-162,keyboard_hook
+2026-02-26 00:19:03.056705,down,left ctrl,-162,keyboard_hook
+2026-02-26 00:19:03.659129,mouse_scroll,,,amount=-30;zoom_out_iter=1
+2026-02-26 00:19:03.861358,mouse_scroll,,,amount=-30;zoom_out_iter=2
+2026-02-26 00:19:04.063263,mouse_scroll,,,amount=-30;zoom_out_iter=3
+2026-02-26 00:19:04.266202,mouse_scroll,,,amount=-30;zoom_out_iter=4
+2026-02-26 00:19:04.467932,mouse_scroll,,,amount=-30;zoom_out_iter=5
+2026-02-26 00:19:04.568914,up,left ctrl,-162,keyboard_hook
+2026-02-26 00:19:28.636233,down,q,16,keyboard_hook

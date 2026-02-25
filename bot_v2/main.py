@@ -1,4 +1,5 @@
 import keyboard
+import json
 import os
 import shutil
 import time
@@ -13,6 +14,8 @@ from utils import (
     set_input_log_path,
     log_input_event,
     set_zoom_modifier_key,
+    save_reference_icon_anchor,
+    align_screen_to_reference_icon,
 )
 
 
@@ -36,6 +39,10 @@ def start_keypress_logger(log_path):
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
     key_log_path = os.path.join(base_dir, 'key_press_log.txt')
+    ref_config_path = os.path.join(base_dir, 'ipm_config.json')
+    default_scroll_start_grid = "T9"
+    default_currency_region_start_grid = "I1"
+    default_currency_region_end_grid = "P2"
     enable_focus_click = True  # Toggle this on/off for pre-zoom focus click
     set_input_log_path(key_log_path)
     key_log_hook = start_keypress_logger(key_log_path)
@@ -47,8 +54,55 @@ if __name__ == "__main__":
     # Open/focus BlueStacks
     open_bluestacks()
 
+    # Ensure reference icon anchor config exists (one-time calibration)
+    if not os.path.exists(ref_config_path):
+        print("Reference anchor config not found. Detecting ref_icon.png and saving anchor now...")
+        anchor_saved = save_reference_icon_anchor(template_path='ref_icon.png', config_path='ipm_config.json', confidence=0.75)
+        if anchor_saved is None:
+            print("Warning: could not detect reference icon to save anchor coordinates.")
+
+    # Load startup grids from config and backfill keys if missing
+    grid_target = default_scroll_start_grid
+    currency_region_start_grid = default_currency_region_start_grid
+    currency_region_end_grid = default_currency_region_end_grid
+    try:
+        if os.path.exists(ref_config_path):
+            with open(ref_config_path, 'r', encoding='utf-8') as config_file:
+                config_data = json.load(config_file)
+
+            config_grid = str(config_data.get('scroll_start_grid', '')).strip().upper()
+            if config_grid:
+                grid_target = config_grid
+
+            config_currency_start = str(config_data.get('currency_region_start_grid', '')).strip().upper()
+            if config_currency_start:
+                currency_region_start_grid = config_currency_start
+
+            config_currency_end = str(config_data.get('currency_region_end_grid', '')).strip().upper()
+            if config_currency_end:
+                currency_region_end_grid = config_currency_end
+
+            config_changed = False
+            if 'scroll_start_grid' not in config_data:
+                config_data['scroll_start_grid'] = default_scroll_start_grid
+                config_changed = True
+            if 'currency_region_start_grid' not in config_data:
+                config_data['currency_region_start_grid'] = default_currency_region_start_grid
+                config_changed = True
+            if 'currency_region_end_grid' not in config_data:
+                config_data['currency_region_end_grid'] = default_currency_region_end_grid
+                config_changed = True
+
+            if config_changed:
+                with open(ref_config_path, 'w', encoding='utf-8') as config_file:
+                    json.dump(config_data, config_file, indent=2)
+    except Exception as e:
+        print(f"Warning: could not load startup grids from config: {e}")
+
+    print(f"Using scroll_start_grid: {grid_target}")
+    print(f"Using currency region grid bounds: {currency_region_start_grid} -> {currency_region_end_grid}")
+
     # Move mouse to a grid location before any scrolling/zoom occurs
-    grid_target = "U11"  # Change this to your target grid cell
     coords = get_grid_midpoint(grid_target)
     if coords:
         x, y = coords
@@ -67,19 +121,31 @@ if __name__ == "__main__":
     else:
         print(f"Could not find grid coordinates for {grid_target}")
 
-    # Choose a safe area for scroll-based zooming (avoid interactive UI elements)
-    zoom_anchor_target = "U11"  # Set this to a non-interactive grid cell
-    zoom_anchor_coords = get_grid_midpoint(zoom_anchor_target)
-    if zoom_anchor_coords:
-        print(f"Using zoom anchor {zoom_anchor_target} at {zoom_anchor_coords}")
-    else:
-        print(f"Could not find zoom anchor coordinates for {zoom_anchor_target}; using current mouse position")
+    # Startup alignment: drag map until reference icon is near saved coordinates
+    alignment_ok = align_screen_to_reference_icon(config_path='ipm_config.json', tolerance_px=30, max_attempts=8)
+    if not alignment_ok:
+        print("Warning: reference alignment did not converge; continuing with current position.")
+
+    # Reposition to grid target after alignment (dragging may move cursor elsewhere)
+    coords = get_grid_midpoint(grid_target)
+    if coords:
+        x, y = coords
+        try:
+            pyautogui.moveTo(x, y, duration=0.2)
+            print(f"Repositioned mouse to {grid_target} before zoom (x={x}, y={y})")
+            log_input_event('mouse_move', '', '', f'x={x};y={y};phase=pre_zoom_reposition')
+            if enable_focus_click:
+                pyautogui.click()
+                print("Clicked to focus window before zoom (post-alignment)")
+                log_input_event('mouse_click', '', '', f'x={x};y={y};button=left;phase=pre_zoom_reposition')
+        except Exception as e:
+            print(f"Could not reposition mouse before zoom: {e}")
 
     # Continue with zooming
-    zoom_to_max_then_down_one(scroll_anchor=zoom_anchor_coords)
+    zoom_to_max_then_down_one()
 
-    # Currency monitor region bounded by I1..P2
-    currency_region = get_grid_region("I1", "P2")
+    # Currency monitor region from config bounds
+    currency_region = get_grid_region(currency_region_start_grid, currency_region_end_grid)
     if currency_region is None:
         currency_region = (800, 0, 800, 200)
         print("Using fallback currency region (800, 0, 800, 200)")

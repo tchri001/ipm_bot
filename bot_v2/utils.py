@@ -1,11 +1,13 @@
 import subprocess
 import os
+import json
 import pygetwindow as gw
 import time
 import pyautogui
 import easyocr
 import re
 import numpy as np
+import cv2
 from datetime import datetime
 
 _OCR_READER = None
@@ -32,11 +34,212 @@ def log_input_event(event_type, key='', scan_code='', details=''):
         pass
 
 
+def _resolve_local_path(path_value):
+    """Resolve relative paths against this file's directory."""
+    if os.path.isabs(path_value):
+        return path_value
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), path_value)
+
+
 def set_zoom_modifier_key(key_name):
     """Set the key used as zoom modifier for scroll shortcuts (pyautogui key name)."""
     global _ZOOM_MODIFIER_KEY
     if key_name:
         _ZOOM_MODIFIER_KEY = key_name
+
+
+def _get_zoom_scroll_amounts(config_path='ipm_config.json'):
+    """Load zoom scroll amounts from config with safe defaults."""
+    scroll_up_amount = 100
+    scroll_down_amount = -30
+    try:
+        config_full_path = _resolve_local_path(config_path)
+        if os.path.exists(config_full_path):
+            with open(config_full_path, 'r', encoding='utf-8') as config_file:
+                config = json.load(config_file)
+            scroll_up_amount = int(config.get('scroll_up_amount', scroll_up_amount))
+            scroll_down_amount = int(config.get('scroll_down_amount', scroll_down_amount))
+    except Exception as e:
+        print(f"Warning: could not read zoom scroll amounts from config: {e}")
+
+    return scroll_up_amount, scroll_down_amount
+
+
+def find_reference_icon(template_path='ref_icon.png', search_region=None, confidence=0.75):
+    """
+    Find the reference icon on screen using template matching.
+
+    Returns dict with center and match score, or None if not found.
+    """
+    try:
+        template_full_path = _resolve_local_path(template_path)
+        template_img = cv2.imread(template_full_path, cv2.IMREAD_GRAYSCALE)
+        if template_img is None:
+            print(f"Reference icon not found or unreadable: {template_full_path}")
+            return None
+
+        screenshot = pyautogui.screenshot(region=search_region)
+        screenshot_np = np.array(screenshot)
+        screenshot_gray = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2GRAY)
+
+        result = cv2.matchTemplate(screenshot_gray, template_img, cv2.TM_CCOEFF_NORMED)
+        _, max_val, _, max_loc = cv2.minMaxLoc(result)
+        if max_val < confidence:
+            return None
+
+        template_h, template_w = template_img.shape
+        center_x = max_loc[0] + (template_w // 2)
+        center_y = max_loc[1] + (template_h // 2)
+
+        if search_region is not None:
+            region_x, region_y, _, _ = search_region
+            center_x += region_x
+            center_y += region_y
+
+        return {
+            'center_x': int(center_x),
+            'center_y': int(center_y),
+            'score': float(max_val),
+            'template_w': int(template_w),
+            'template_h': int(template_h),
+        }
+    except Exception as e:
+        print(f"Error finding reference icon: {e}")
+        return None
+
+
+def save_reference_icon_anchor(template_path='ref_icon.png', config_path='ipm_config.json', confidence=0.75):
+    """
+    Detect current reference icon position and save as startup anchor coordinates.
+    """
+    detection = find_reference_icon(template_path=template_path, confidence=confidence)
+    if not detection:
+        return None
+
+    config_full_path = _resolve_local_path(config_path)
+    existing_scroll_start_grid = 'T9'
+    existing_currency_region_start_grid = 'I1'
+    existing_currency_region_end_grid = 'P2'
+    existing_scroll_up_amount = 100
+    existing_scroll_down_amount = -30
+    if os.path.exists(config_full_path):
+        try:
+            with open(config_full_path, 'r', encoding='utf-8') as existing_config_file:
+                existing_config = json.load(existing_config_file)
+            existing_scroll_start_grid = str(existing_config.get('scroll_start_grid', 'T9')).strip().upper() or 'T9'
+            existing_currency_region_start_grid = str(existing_config.get('currency_region_start_grid', 'I1')).strip().upper() or 'I1'
+            existing_currency_region_end_grid = str(existing_config.get('currency_region_end_grid', 'P2')).strip().upper() or 'P2'
+            existing_scroll_up_amount = int(existing_config.get('scroll_up_amount', 100))
+            existing_scroll_down_amount = int(existing_config.get('scroll_down_amount', -30))
+        except Exception:
+            existing_scroll_start_grid = 'T9'
+            existing_currency_region_start_grid = 'I1'
+            existing_currency_region_end_grid = 'P2'
+            existing_scroll_up_amount = 100
+            existing_scroll_down_amount = -30
+
+    payload = {
+        'template_path': template_path,
+        'target_x': detection['center_x'],
+        'target_y': detection['center_y'],
+        'scroll_start_grid': existing_scroll_start_grid,
+        'currency_region_start_grid': existing_currency_region_start_grid,
+        'currency_region_end_grid': existing_currency_region_end_grid,
+        'scroll_up_amount': existing_scroll_up_amount,
+        'scroll_down_amount': existing_scroll_down_amount,
+        'tolerance_px': 30,
+        'confidence': confidence,
+        'saved_at': datetime.now().isoformat(),
+    }
+    with open(config_full_path, 'w', encoding='utf-8') as config_file:
+        json.dump(payload, config_file, indent=2)
+
+    print(f"Saved reference icon anchor: ({payload['target_x']}, {payload['target_y']}) -> {config_full_path}")
+    return payload
+
+
+def align_screen_to_reference_icon(config_path='ipm_config.json', tolerance_px=30, max_attempts=8):
+    """
+    Align the map by dragging until the reference icon is within tolerance.
+    """
+    try:
+        config_full_path = _resolve_local_path(config_path)
+        if not os.path.exists(config_full_path):
+            print(f"Reference config not found: {config_full_path}")
+            return False
+
+        with open(config_full_path, 'r', encoding='utf-8') as config_file:
+            config = json.load(config_file)
+
+        template_path = config.get('template_path', 'ref_icon.png')
+        target_x = int(config['target_x'])
+        target_y = int(config['target_y'])
+
+        for attempt in range(1, max_attempts + 1):
+            detection = find_reference_icon(template_path=template_path, confidence=float(config.get('confidence', 0.75)))
+            if not detection:
+                print(f"Reference icon not found on attempt {attempt}/{max_attempts}")
+                return False
+
+            current_x = detection['center_x']
+            current_y = detection['center_y']
+            dx = target_x - current_x
+            dy = target_y - current_y
+
+            if abs(dx) <= tolerance_px and abs(dy) <= tolerance_px:
+                print(f"Reference aligned within tolerance ({tolerance_px}px): dx={dx}, dy={dy}")
+                return True
+
+            # Use slow, small drags to avoid BlueStacks momentum after release.
+            # Apply only a fraction of the remaining offset each attempt.
+            step_dx = int(max(-80, min(80, dx * 0.5)))
+            step_dy = int(max(-60, min(60, dy * 0.5)))
+
+            # Ensure we still move when non-zero offset exists
+            if step_dx == 0 and dx != 0:
+                step_dx = 1 if dx > 0 else -1
+            if step_dy == 0 and dy != 0:
+                step_dy = 1 if dy > 0 else -1
+
+            pyautogui.moveTo(current_x, current_y, duration=0.12)
+
+            # Break movement into tiny chunks to minimize inertia.
+            chunk_count = max(1, max(abs(step_dx) // 20, abs(step_dy) // 20))
+            chunk_dx = step_dx / chunk_count
+            chunk_dy = step_dy / chunk_count
+
+            # Explicitly hold mouse during drag to avoid intermittent release.
+            pyautogui.mouseDown(button='left')
+            log_input_event('mouse_down', '', '', f'x={current_x};y={current_y};attempt={attempt}')
+            try:
+                for chunk_index in range(chunk_count):
+                    this_dx = int(round(chunk_dx))
+                    this_dy = int(round(chunk_dy))
+                    if this_dx == 0 and step_dx != 0:
+                        this_dx = 1 if step_dx > 0 else -1
+                    if this_dy == 0 and step_dy != 0:
+                        this_dy = 1 if step_dy > 0 else -1
+
+                    pyautogui.moveRel(this_dx, this_dy, duration=0.18)
+                    log_input_event(
+                        'mouse_drag',
+                        '',
+                        '',
+                        f'start_x={current_x};start_y={current_y};dx={this_dx};dy={this_dy};attempt={attempt};chunk={chunk_index+1}/{chunk_count}'
+                    )
+                    time.sleep(0.08)
+            finally:
+                pyautogui.mouseUp(button='left')
+                log_input_event('mouse_up', '', '', f'attempt={attempt}')
+
+            # Allow post-drag momentum to settle before re-detection.
+            time.sleep(0.45)
+
+        print(f"Could not align within {max_attempts} attempts")
+        return False
+    except Exception as e:
+        print(f"Error aligning to reference icon: {e}")
+        return False
 
 
 def _get_ocr_reader():
@@ -151,13 +354,13 @@ def _save_currency_debug_screenshot(screenshot, region, debug_dir):
     return output_path
 
 
-def get_grid_midpoint(grid_code, coords_file='screen_grid_coords.txt', box_size=100):
+def get_grid_midpoint(grid_code, coords_file='grid/screen_grid_coords.txt', box_size=100):
     """
     Read a grid code (e.g., 'O15') and return the midpoint coordinates of that cell.
     
     Args:
         grid_code: Grid cell code (e.g., 'O15')
-        coords_file: Path to screen_grid_coords.txt
+        coords_file: Path to grid/screen_grid_coords.txt
         box_size: Size of each grid cell in pixels (default 100)
     
     Returns:
@@ -203,7 +406,7 @@ def get_grid_midpoint(grid_code, coords_file='screen_grid_coords.txt', box_size=
         return None
 
 
-def get_grid_region(top_left_code, bottom_right_code, coords_file='screen_grid_coords.txt', box_size=100):
+def get_grid_region(top_left_code, bottom_right_code, coords_file='grid/screen_grid_coords.txt', box_size=100):
     """
     Return a screenshot region tuple (x, y, width, height) bounded by two grid cells.
 
@@ -284,36 +487,21 @@ def open_bluestacks():
         print(f"Error opening BlueStacks: {e}")
 
 
-def zoom_to_max_then_down_one(scroll_anchor=None):
+def zoom_to_max_then_down_one():
     """
     Zoom sequence:
     1) Hold modifier and scroll up 5 times
     2) Hold modifier and scroll down 5 times
-
-    Args:
-        scroll_anchor: Optional tuple (x, y). If provided, mouse is moved to this
-            safe point before and during scrolling to avoid hovering interactive UI.
     """
+    scroll_up_amount, scroll_down_amount = _get_zoom_scroll_amounts(config_path='ipm_config.json')
     time.sleep(2)  # Wait for BlueStacks to be ready before zoom input
-
-    def _move_to_anchor():
-        if scroll_anchor is None:
-            return
-        try:
-            anchor_x, anchor_y = scroll_anchor
-            pyautogui.moveTo(anchor_x, anchor_y, duration=0.05)
-            log_input_event('mouse_move', '', '', f'x={anchor_x};y={anchor_y};phase=zoom_anchor')
-        except Exception:
-            pass
     
     # Zoom in to maximum (hold Ctrl, scroll up 5 times, then release Ctrl)
-    _move_to_anchor()
     pyautogui.keyDown(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
     for i in range(5):
-        _move_to_anchor()
-        pyautogui.scroll(100)  # Scroll up (positive value)
-        log_input_event('mouse_scroll', '', '', f'amount=100;zoom_in_iter={i+1}')
+        pyautogui.scroll(scroll_up_amount)
+        log_input_event('mouse_scroll', '', '', f'amount={scroll_up_amount};zoom_in_iter={i+1}')
         time.sleep(0.1)
     pyautogui.keyUp(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
@@ -322,13 +510,11 @@ def zoom_to_max_then_down_one(scroll_anchor=None):
     time.sleep(0.5)
     
     # Zoom out by a set amount (hold Ctrl, scroll down 5 times, then release Ctrl)
-    _move_to_anchor()
     pyautogui.keyDown(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
     for i in range(5):
-        _move_to_anchor()
-        pyautogui.scroll(-40)  # Scroll down (negative value)
-        log_input_event('mouse_scroll', '', '', f'amount=-40;zoom_out_iter={i+1}')
+        pyautogui.scroll(scroll_down_amount)
+        log_input_event('mouse_scroll', '', '', f'amount={scroll_down_amount};zoom_out_iter={i+1}')
         time.sleep(0.1)
     pyautogui.keyUp(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)

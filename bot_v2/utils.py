@@ -39,10 +39,6 @@ def set_zoom_modifier_key(key_name):
         _ZOOM_MODIFIER_KEY = key_name
 
 
-def get_zoom_modifier_key():
-    return _ZOOM_MODIFIER_KEY
-
-
 def _get_ocr_reader():
     global _OCR_READER
     if _OCR_READER is None:
@@ -288,21 +284,12 @@ def open_bluestacks():
         print(f"Error opening BlueStacks: {e}")
 
 
-def press_f11():
-    """
-    Presses the F11 key to enter fullscreen mode in BlueStacks.
-    """
-    time.sleep(1)  # Wait for BlueStacks to be ready
-    pyautogui.press('f11')
-    print("F11 pressed")
-
-
 def zoom_to_max_then_down_one():
     """
     Zooms in to maximum by scrolling up 5 times with Ctrl held,
     then zooms out by 1 level by scrolling down 1 time with Ctrl held.
     """
-    time.sleep(5)  # Wait for BlueStacks to be fully loaded after F11
+    time.sleep(2)  # Wait for BlueStacks to be fully loaded after F11
     
     # Zoom in to maximum (hold Ctrl, scroll up 5 times, then release Ctrl)
     pyautogui.keyDown(_ZOOM_MODIFIER_KEY)
@@ -327,20 +314,6 @@ def zoom_to_max_then_down_one():
     pyautogui.keyUp(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
     print("Zoomed out by 1 level")
-
-
-def setup_bluestacks():
-    """
-    Complete setup sequence for BlueStacks:
-    1. Opens/focuses BlueStacks
-    2. Presses F11 for fullscreen
-    3. Zooms in to maximum then out by 1 level
-    """
-    print("Starting BlueStacks setup...")
-    open_bluestacks()
-    press_f11()
-    zoom_to_max_then_down_one()
-    print("BlueStacks setup complete!")
 
 
 def get_currency_value_with_visualization(region=(0, 0, 1920, 150), display=True, debug_dir=None):

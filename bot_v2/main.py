@@ -15,17 +15,6 @@ from utils import (
     set_zoom_modifier_key,
 )
 
-def listen_for_exit():
-    """
-    Listens for the 'q' key press and kills the program when pressed.
-    """
-    print("Listening for 'q' key to exit...")
-    while True:
-        if keyboard.is_pressed('q'):
-            print("Exiting program...")
-            os._exit(0)
-        time.sleep(0.1)  # Small delay to avoid excessive CPU usage
-
 
 def start_keypress_logger(log_path):
     """

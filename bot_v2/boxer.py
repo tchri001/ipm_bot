@@ -13,12 +13,10 @@ Controls:
 import string
 import os
 import tkinter as tk
-from PIL import Image, ImageDraw, ImageTk
+from PIL import ImageDraw, ImageTk
 import pyautogui
 import threading
 import keyboard
-import time
-import ctypes
 
 
 MAIN_REGION = (0, 0, 2880, 1800)

@@ -11,6 +11,7 @@ Controls:
     - Press `s` to save the grid image as `screen_grid.png`.
 """
 import string
+import os
 import tkinter as tk
 from PIL import Image, ImageDraw, ImageTk
 import pyautogui
@@ -18,6 +19,10 @@ import threading
 import keyboard
 import time
 import ctypes
+
+
+MAIN_REGION = (0, 0, 2880, 1800)
+MAIN_X, MAIN_Y, MAIN_WIDTH, MAIN_HEIGHT = MAIN_REGION
 
 
 def col_label(idx: int) -> str:
@@ -34,16 +39,16 @@ def col_label(idx: int) -> str:
 
 
 def create_grid_image(box_size=100):
-    """Create a transparent grid image with labels."""
-    w, h = pyautogui.size()
-    cols = w // box_size
-    rows = h // box_size
+    """Capture the current screen and draw grid overlay on it."""
+    cols = MAIN_WIDTH // box_size
+    rows = MAIN_HEIGHT // box_size
     
-    # Create transparent image (RGBA with alpha channel)
-    img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    # Capture actual screen
+    screen = pyautogui.screenshot(region=MAIN_REGION)
+    img = screen.convert('RGB')
     draw = ImageDraw.Draw(img)
     
-    # Draw grid
+    # Draw grid lines on top
     for r in range(rows):
         for c in range(cols):
             x1 = c * box_size
@@ -52,50 +57,54 @@ def create_grid_image(box_size=100):
             y2 = y1 + box_size - 1
             
             # Draw green outline
-            draw.rectangle([x1, y1, x2, y2], outline=(0, 255, 0, 200), width=2)
+            draw.rectangle([x1, y1, x2, y2], outline=(0, 255, 0), width=2)
             
             # Label
             label = f"{col_label(c)}{r+1}"
-            draw.text((x1 + 5, y1 + 5), label, fill=(255, 255, 255, 255))
+            draw.text((x1 + 5, y1 + 5), label, fill=(255, 255, 255))
     
     return img, cols, rows
 
 
 def save_grid_coords(box_size=100, filename='screen_grid_coords.txt'):
     """Write grid cell labels and top-left coordinates to a text file."""
-    w, h = pyautogui.size()
-    cols = w // box_size
-    rows = h // box_size
+    cols = MAIN_WIDTH // box_size
+    rows = MAIN_HEIGHT // box_size
 
-    with open(filename, 'w', encoding='utf-8') as fh:
+    output_path = filename if os.path.isabs(filename) else os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+
+    with open(output_path, 'w', encoding='utf-8') as fh:
         for r in range(rows):
             for c in range(cols):
                 label = f"{col_label(c)}{r+1}"
-                x = c * box_size
-                y = r * box_size
+                x = MAIN_X + c * box_size
+                y = MAIN_Y + r * box_size
                 fh.write(f"{label}:x={x},y={y}\n")
 
-    print(f"Saved grid coordinates to '{filename}' ({cols} cols x {rows} rows)")
+    print(f"Saved grid coordinates to '{output_path}' ({cols} cols x {rows} rows)")
 
 
 def main():
     box_size = 100
     
-    # Setup stop event
+    # Setup stop event and save event
     stop_event = threading.Event()
-    hotkey_id = keyboard.add_hotkey('q', lambda: stop_event.set())
+    save_event = threading.Event()
+    hotkey_q = keyboard.add_hotkey('q', lambda: stop_event.set())
+    hotkey_s = keyboard.add_hotkey('s', lambda: save_event.set())
     
     print('Starting in 3 seconds — switch to target app now (press q to cancel)')
-    if stop_event.wait(3):
+    if stop_event.wait(2):
         print('Startup cancelled with q')
-        keyboard.remove_hotkey(hotkey_id)
+        keyboard.remove_hotkey(hotkey_q)
+        keyboard.remove_hotkey(hotkey_s)
         return
     
     # Create grid image
     img, cols, rows = create_grid_image(box_size=box_size)
     save_grid_coords(box_size=box_size, filename='screen_grid_coords.txt')
     
-    w, h = pyautogui.size()
+    w, h = img.size
     
     # Create tkinter window
     root = tk.Tk()
@@ -106,15 +115,21 @@ def main():
     # Convert PIL image to PhotoImage
     photo = ImageTk.PhotoImage(img)
     
-    # Create label to display image (simpler than canvas for this use case)
-    label = tk.Label(root, image=photo, bg='black')
+    # Create label to display image
+    label = tk.Label(root, image=photo)
     label.pack(fill=tk.BOTH, expand=True)
     label.image = photo  # Keep reference
     
-    print("\nGrid overlay displayed. Press 'q' to exit.")
+    print("\nGrid overlay displayed. Press 'q' to exit, 's' to save screenshot.")
     
     # Main loop
     def check_exit():
+        if save_event.is_set():
+            output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'screen_grid.png')
+            img.save(output_path)
+            print(f"Saved screenshot to {output_path}")
+            save_event.clear()
+        
         if stop_event.is_set():
             root.quit()
         else:
@@ -124,7 +139,8 @@ def main():
     
     root.mainloop()
     
-    keyboard.remove_hotkey(hotkey_id)
+    keyboard.remove_hotkey(hotkey_q)
+    keyboard.remove_hotkey(hotkey_s)
     print("Grid overlay closed.")
 
 

@@ -5,6 +5,118 @@ import time
 import pyautogui
 import easyocr
 import re
+import numpy as np
+from datetime import datetime
+
+_OCR_READER = None
+
+
+def _get_ocr_reader():
+    global _OCR_READER
+    if _OCR_READER is None:
+        print("Initializing OCR reader (first run may take a moment)...")
+        _OCR_READER = easyocr.Reader(['en'])
+    return _OCR_READER
+
+
+def _parse_compact_currency(value_text):
+    """
+    Parse compact currency strings like:
+    - 61.91K
+    - 1,234
+    - 2.5M
+    Returns integer value or None.
+    """
+    if not value_text:
+        return None
+
+    cleaned = value_text.upper().replace(',', '').replace(' ', '')
+    match = re.match(r'^(\d+(?:\.\d+)?)([KMB]?)$', cleaned)
+    if not match:
+        return None
+
+    number = float(match.group(1))
+    suffix = match.group(2)
+
+    multiplier = 1
+    if suffix == 'K':
+        multiplier = 1_000
+    elif suffix == 'M':
+        multiplier = 1_000_000
+    elif suffix == 'B':
+        multiplier = 1_000_000_000
+
+    return int(number * multiplier)
+
+
+def _extract_currency_from_texts(texts):
+    """
+    Extract currency from OCR text snippets.
+    Prefers '$' anchored matches but has a fallback compact-number match.
+    """
+    # 1) Strong match: number that follows '$'
+    for text in texts:
+        text_upper = text.upper()
+        anchored = re.search(r'\$\s*([\d][\d,]*(?:\.\d+)?\s*[KMB]?)', text_upper)
+        if anchored:
+            parsed = _parse_compact_currency(anchored.group(1))
+            if parsed is not None:
+                return parsed
+
+    # 2) Join all snippets and try again (handles split OCR tokens like '$' + '61.91K')
+    joined = ' '.join(t.upper() for t in texts)
+    anchored_joined = re.search(r'\$\s*([\d][\d,]*(?:\.\d+)?\s*[KMB]?)', joined)
+    if anchored_joined:
+        parsed = _parse_compact_currency(anchored_joined.group(1))
+        if parsed is not None:
+            return parsed
+
+    # 3) Fallback: compact number with suffix even if '$' is missed by OCR
+    # Use the largest detected value to avoid tiny noise fragments.
+    candidates = re.findall(r'\b([\d][\d,]*(?:\.\d+)?\s*[KMB])\b', joined)
+    parsed_candidates = [
+        _parse_compact_currency(candidate)
+        for candidate in candidates
+        if _parse_compact_currency(candidate) is not None
+    ]
+    if parsed_candidates:
+        return max(parsed_candidates)
+
+    return None
+
+
+def _save_currency_debug_screenshot(screenshot, region, debug_dir):
+    """Save the OCR crop image for debugging where currency detection is looking."""
+    if not debug_dir:
+        return None
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    output_dir = debug_dir if os.path.isabs(debug_dir) else os.path.join(base_dir, debug_dir)
+    os.makedirs(output_dir, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    x, y, width, height = region
+    filename = f"currency_region_{timestamp}_x{x}_y{y}_w{width}_h{height}.png"
+    output_path = os.path.join(output_dir, filename)
+    screenshot.save(output_path)
+
+    # Keep only the newest 20 debug screenshots
+    max_debug_files = 20
+    debug_files = []
+    for entry in os.scandir(output_dir):
+        if entry.is_file() and entry.name.startswith("currency_region_") and entry.name.endswith(".png"):
+            debug_files.append((entry.path, entry.stat().st_mtime))
+
+    if len(debug_files) > max_debug_files:
+        debug_files.sort(key=lambda item: item[1])
+        files_to_remove = debug_files[: len(debug_files) - max_debug_files]
+        for file_path, _ in files_to_remove:
+            try:
+                os.remove(file_path)
+            except OSError:
+                pass
+
+    return output_path
 
 
 def get_grid_midpoint(grid_code, coords_file='screen_grid_coords.txt', box_size=100):
@@ -22,6 +134,11 @@ def get_grid_midpoint(grid_code, coords_file='screen_grid_coords.txt', box_size=
     try:
         # Ensure grid code is uppercase
         grid_code = grid_code.upper().strip()
+
+        if not os.path.isabs(coords_file):
+            local_candidate = os.path.join(os.path.dirname(os.path.abspath(__file__)), coords_file)
+            if os.path.exists(local_candidate):
+                coords_file = local_candidate
         
         # Read the coordinates file
         with open(coords_file, 'r', encoding='utf-8') as f:
@@ -51,6 +168,48 @@ def get_grid_midpoint(grid_code, coords_file='screen_grid_coords.txt', box_size=
         return None
     except Exception as e:
         print(f"Error reading grid coordinates: {e}")
+        return None
+
+
+def get_grid_region(top_left_code, bottom_right_code, coords_file='screen_grid_coords.txt', box_size=100):
+    """
+    Return a screenshot region tuple (x, y, width, height) bounded by two grid cells.
+
+    Example: J1 to L2 with box_size=100 -> (900, 0, 300, 200)
+    """
+    try:
+        if not os.path.isabs(coords_file):
+            local_candidate = os.path.join(os.path.dirname(os.path.abspath(__file__)), coords_file)
+            if os.path.exists(local_candidate):
+                coords_file = local_candidate
+
+        lookup = {}
+        with open(coords_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or ':' not in line:
+                    continue
+                label, raw_coords = line.split(':', 1)
+                parts = raw_coords.split(',')
+                if len(parts) != 2:
+                    continue
+                x = int(parts[0].split('=')[1])
+                y = int(parts[1].split('=')[1])
+                lookup[label.upper()] = (x, y)
+
+        start = lookup.get(top_left_code.upper())
+        end = lookup.get(bottom_right_code.upper())
+        if not start or not end:
+            print(f"Could not find grid bounds: {top_left_code} to {bottom_right_code}")
+            return None
+
+        x1, y1 = start
+        x2, y2 = end
+        width = (x2 - x1) + box_size
+        height = (y2 - y1) + box_size
+        return (x1, y1, width, height)
+    except Exception as e:
+        print(f"Error building grid region: {e}")
         return None
 
 
@@ -142,7 +301,7 @@ def setup_bluestacks():
     print("BlueStacks setup complete!")
 
 
-def get_currency_value_with_visualization(region=(0, 0, 1920, 150), display=True):
+def get_currency_value_with_visualization(region=(0, 0, 1920, 150), display=True, debug_dir=None):
     """
     Captures currency value from the game window using OCR.
     
@@ -156,31 +315,25 @@ def get_currency_value_with_visualization(region=(0, 0, 1920, 150), display=True
     try:
         # Take screenshot of the specified region
         screenshot = pyautogui.screenshot(region=region)
-        
-        # Initialize OCR reader (first use downloads the model ~200MB)
-        print("Initializing OCR reader (this may take a moment on first run)...")
-        reader = easyocr.Reader(['en'])
+
+        # Save OCR target crop for debugging if requested
+        saved_path = _save_currency_debug_screenshot(screenshot, region, debug_dir)
+        if saved_path:
+            print(f"Saved OCR crop: {saved_path}")
+
+        # Reuse OCR reader for faster repeated polling
+        reader = _get_ocr_reader()
         
         # Extract text from screenshot
-        text_results = reader.readtext(screenshot)
+        screenshot_np = np.array(screenshot)
+        text_results = reader.readtext(screenshot_np)
+        detected_texts = [item[1] for item in text_results if len(item) > 1]
+
+        currency_value = _extract_currency_from_texts(detected_texts)
+        if currency_value is not None:
+            return currency_value
         
-        # Look for $ symbol and extract currency value
-        for detection in text_results:
-            detected_text = detection[1].upper()
-            if '$' in detected_text:
-                # Extract number after $
-                parts = detected_text.split('$')
-                if len(parts) > 1:
-                    currency_str = parts[1].strip().replace(',', '')
-                    try:
-                        # Try to extract just the number part
-                        numbers = re.findall(r'\d+', currency_str)
-                        if numbers:
-                            return int(numbers[0])
-                    except:
-                        pass
-        
-        print("Currency value not found in region")
+        print(f"Currency value not found in region. OCR saw: {detected_texts}")
         return None
         
     except Exception as e:

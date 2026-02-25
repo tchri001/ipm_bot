@@ -9,6 +9,38 @@ import numpy as np
 from datetime import datetime
 
 _OCR_READER = None
+_INPUT_LOG_PATH = None
+_ZOOM_MODIFIER_KEY = 'ctrlleft'
+
+
+def set_input_log_path(log_path):
+    """Set shared input log file path for utils-generated input events."""
+    global _INPUT_LOG_PATH
+    _INPUT_LOG_PATH = log_path
+
+
+def log_input_event(event_type, key='', scan_code='', details=''):
+    """Append a CSV input event row to the shared log file if configured."""
+    if not _INPUT_LOG_PATH:
+        return
+    try:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+        safe_details = str(details).replace(',', ';')
+        with open(_INPUT_LOG_PATH, 'a', encoding='utf-8') as log_file:
+            log_file.write(f"{timestamp},{event_type},{key},{scan_code},{safe_details}\n")
+    except OSError:
+        pass
+
+
+def set_zoom_modifier_key(key_name):
+    """Set the key used as zoom modifier for scroll shortcuts (pyautogui key name)."""
+    global _ZOOM_MODIFIER_KEY
+    if key_name:
+        _ZOOM_MODIFIER_KEY = key_name
+
+
+def get_zoom_modifier_key():
+    return _ZOOM_MODIFIER_KEY
 
 
 def _get_ocr_reader():
@@ -31,7 +63,7 @@ def _parse_compact_currency(value_text):
         return None
 
     cleaned = value_text.upper().replace(',', '').replace(' ', '')
-    match = re.match(r'^(\d+(?:\.\d+)?)([KMB]?)$', cleaned)
+    match = re.match(r'^(\d+(?:\.\d+)?)([KMBTQ]?)$', cleaned)
     if not match:
         return None
 
@@ -45,6 +77,10 @@ def _parse_compact_currency(value_text):
         multiplier = 1_000_000
     elif suffix == 'B':
         multiplier = 1_000_000_000
+    elif suffix == 'T':
+        multiplier = 1_000_000_000_000
+    elif suffix == 'Q':
+        multiplier = 1_000_000_000_000_000
 
     return int(number * multiplier)
 
@@ -57,7 +93,7 @@ def _extract_currency_from_texts(texts):
     # 1) Strong match: number that follows '$'
     for text in texts:
         text_upper = text.upper()
-        anchored = re.search(r'\$\s*([\d][\d,]*(?:\.\d+)?\s*[KMB]?)', text_upper)
+        anchored = re.search(r'\$\s*([\d][\d,]*(?:\.\d+)?\s*[KMBTQ]?)', text_upper)
         if anchored:
             parsed = _parse_compact_currency(anchored.group(1))
             if parsed is not None:
@@ -65,7 +101,7 @@ def _extract_currency_from_texts(texts):
 
     # 2) Join all snippets and try again (handles split OCR tokens like '$' + '61.91K')
     joined = ' '.join(t.upper() for t in texts)
-    anchored_joined = re.search(r'\$\s*([\d][\d,]*(?:\.\d+)?\s*[KMB]?)', joined)
+    anchored_joined = re.search(r'\$\s*([\d][\d,]*(?:\.\d+)?\s*[KMBTQ]?)', joined)
     if anchored_joined:
         parsed = _parse_compact_currency(anchored_joined.group(1))
         if parsed is not None:
@@ -73,7 +109,7 @@ def _extract_currency_from_texts(texts):
 
     # 3) Fallback: compact number with suffix even if '$' is missed by OCR
     # Use the largest detected value to avoid tiny noise fragments.
-    candidates = re.findall(r'\b([\d][\d,]*(?:\.\d+)?\s*[KMB])\b', joined)
+    candidates = re.findall(r'\b([\d][\d,]*(?:\.\d+)?\s*[KMBTQ])\b', joined)
     parsed_candidates = [
         _parse_compact_currency(candidate)
         for candidate in candidates
@@ -268,22 +304,28 @@ def zoom_to_max_then_down_one():
     """
     time.sleep(5)  # Wait for BlueStacks to be fully loaded after F11
     
-    # Zoom in to maximum (scroll up 5 times with Ctrl)
+    # Zoom in to maximum (hold Ctrl, scroll up 5 times, then release Ctrl)
+    pyautogui.keyDown(_ZOOM_MODIFIER_KEY)
+    time.sleep(0.4)
     for i in range(5):
-        pyautogui.keyDown('ctrl')
-        pyautogui.scroll(150)  # Scroll up (positive value)
-        pyautogui.keyUp('ctrl')
-        time.sleep(0.2)  # Small delay between scrolls
+        pyautogui.scroll(100)  # Scroll up (positive value)
+        log_input_event('mouse_scroll', '', '', f'amount=100;zoom_in_iter={i+1}')
+        time.sleep(0.1)
+    pyautogui.keyUp(_ZOOM_MODIFIER_KEY)
+    time.sleep(0.4)
     print("Zoomed in to maximum")
     
     time.sleep(0.5)
     
-    # Zoom out by 1 level (scroll down 1 time with Ctrl)
+    # Zoom out by a set amount (hold Ctrl, scroll down 5 times, then release Ctrl)
+    pyautogui.keyDown(_ZOOM_MODIFIER_KEY)
+    time.sleep(0.4)
     for i in range(5):
-        pyautogui.keyDown('ctrl')
-        pyautogui.scroll(-20)  # Scroll down (negative value)
-        pyautogui.keyUp('ctrl')
-        time.sleep(0.2)  # Small delay between scrolls
+        pyautogui.scroll(-50)  # Scroll down (negative value)
+        log_input_event('mouse_scroll', '', '', f'amount=-50;zoom_out_iter={i+1}')
+        time.sleep(0.1)
+    pyautogui.keyUp(_ZOOM_MODIFIER_KEY)
+    time.sleep(0.4)
     print("Zoomed out by 1 level")
 
 

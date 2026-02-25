@@ -2,6 +2,7 @@ import keyboard
 import os
 import shutil
 import time
+from datetime import datetime
 import pyautogui
 from utils import (
     open_bluestacks,
@@ -9,6 +10,9 @@ from utils import (
     get_currency_value_with_visualization,
     get_grid_midpoint,
     get_grid_region,
+    set_input_log_path,
+    log_input_event,
+    set_zoom_modifier_key,
 )
 
 def listen_for_exit():
@@ -22,7 +26,35 @@ def listen_for_exit():
             os._exit(0)
         time.sleep(0.1)  # Small delay to avoid excessive CPU usage
 
+
+def start_keypress_logger(log_path):
+    """
+    Log all keyboard events (down/up) to help debug unexpected input behavior.
+    """
+    with open(log_path, 'w', encoding='utf-8') as log_file:
+        log_file.write("timestamp,event,key,scan_code,details\n")
+
+    def _on_key_event(event):
+        try:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+            with open(log_path, 'a', encoding='utf-8') as log_file:
+                log_file.write(f"{timestamp},{event.event_type},{event.name},{event.scan_code},keyboard_hook\n")
+        except OSError:
+            pass
+
+    return keyboard.hook(_on_key_event)
+
 if __name__ == "__main__":
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    key_log_path = os.path.join(base_dir, 'key_press_log.txt')
+    enable_focus_click = False  # Toggle this on/off for pre-zoom focus click
+    set_input_log_path(key_log_path)
+    key_log_hook = start_keypress_logger(key_log_path)
+    print(f"Logging key events to: {key_log_path}")
+
+    set_zoom_modifier_key('ctrl')
+    print("Using zoom modifier key: ctrl")
+
     # Open/focus BlueStacks
     open_bluestacks()
 
@@ -34,6 +66,13 @@ if __name__ == "__main__":
         try:
             pyautogui.moveTo(x, y, duration=0.2)
             print(f"Moved mouse to {grid_target} (x={x}, y={y})")
+            log_input_event('mouse_move', '', '', f'x={x};y={y}')
+            if enable_focus_click:
+                pyautogui.click()
+                print("Clicked to focus window before zoom")
+                log_input_event('mouse_click', '', '', f'x={x};y={y};button=left')
+            else:
+                print("Focus click disabled (enable_focus_click=False)")
         except Exception as e:
             print(f"Could not move mouse: {e}")
     else:
@@ -42,19 +81,18 @@ if __name__ == "__main__":
     # Continue with zooming
     zoom_to_max_then_down_one()
 
-    # Currency monitor region bounded by J1..L2 (includes J1,K1,L1 and J2,K2,L2)
-    currency_region = get_grid_region("J1", "L2")
+    # Currency monitor region bounded by I1..P2
+    currency_region = get_grid_region("I1", "P2")
     if currency_region is None:
-        currency_region = (900, 0, 300, 200)
-        print("Using fallback currency region (900, 0, 300, 200)")
+        currency_region = (800, 0, 800, 200)
+        print("Using fallback currency region (800, 0, 800, 200)")
 
     # Tighten region to focus on currency text only
-    # Shrink by 20px on X sides and 50px on Y sides
+    # Shrink by 50px on Y sides, keep full X range
     rx, ry, rw, rh = currency_region
-    currency_region = (rx + 20, ry + 50, max(1, rw - 40), max(1, rh - 100))
+    currency_region = (rx, ry + 50, rw, max(1, rh - 100))
 
     # Clear debug screenshot folder at startup (safer on Windows/OneDrive)
-    base_dir = os.path.dirname(os.path.abspath(__file__))
     debug_dir_name = 'currency_screenshots'
     debug_dir_path = os.path.join(base_dir, debug_dir_name)
     os.makedirs(debug_dir_path, exist_ok=True)
@@ -76,6 +114,7 @@ if __name__ == "__main__":
     while True:
         if keyboard.is_pressed('q'):
             print("Exiting program...")
+            keyboard.unhook(key_log_hook)
             os._exit(0)
 
         now = time.time()

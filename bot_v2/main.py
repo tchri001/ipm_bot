@@ -39,7 +39,7 @@ def start_keypress_logger(log_path):
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
     key_log_path = os.path.join(base_dir, 'key_press_log.txt')
-    ref_config_path = os.path.join(base_dir, 'ipm_config.json')
+    ref_config_path = os.path.join(base_dir, 'config', 'ipm_config.json')
     default_scroll_start_grid = "T9"
     default_currency_region_start_grid = "I1"
     default_currency_region_end_grid = "P2"
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # Ensure reference icon anchor config exists (one-time calibration)
     if not os.path.exists(ref_config_path):
         print("Reference anchor config not found. Detecting ref_icon.png and saving anchor now...")
-        anchor_saved = save_reference_icon_anchor(template_path='ref_icon.png', config_path='ipm_config.json', confidence=0.75)
+        anchor_saved = save_reference_icon_anchor(template_path='config/ref_icon.png', config_path='config/ipm_config.json', confidence=0.75)
         if anchor_saved is None:
             print("Warning: could not detect reference icon to save anchor coordinates.")
 
@@ -122,7 +122,7 @@ if __name__ == "__main__":
         print(f"Could not find grid coordinates for {grid_target}")
 
     # Startup alignment: drag map until reference icon is near saved coordinates
-    alignment_ok = align_screen_to_reference_icon(config_path='ipm_config.json', tolerance_px=30, max_attempts=8)
+    alignment_ok = align_screen_to_reference_icon(config_path='config/ipm_config.json', tolerance_px=30, max_attempts=8)
     if not alignment_ok:
         print("Warning: reference alignment did not converge; continuing with current position.")
 

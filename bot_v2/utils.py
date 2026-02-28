@@ -41,41 +41,12 @@ def _resolve_local_path(path_value):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), path_value)
 
 
-def set_zoom_modifier_key(key_name):
-    """Set the key used as zoom modifier for scroll shortcuts (pyautogui key name)."""
-    global _ZOOM_MODIFIER_KEY
-    if key_name:
-        _ZOOM_MODIFIER_KEY = key_name
-
-
-def _get_zoom_scroll_amounts(config_path='ipm_config.json'):
-    """Load zoom scroll amounts from config with safe defaults."""
-    scroll_up_amount = 100
-    scroll_down_amount = -30
-    try:
-        config_full_path = _resolve_local_path(config_path)
-        if os.path.exists(config_full_path):
-            with open(config_full_path, 'r', encoding='utf-8') as config_file:
-                config = json.load(config_file)
-            scroll_up_amount = int(config.get('scroll_up_amount', scroll_up_amount))
-            scroll_down_amount = int(config.get('scroll_down_amount', scroll_down_amount))
-    except Exception as e:
-        print(f"Warning: could not read zoom scroll amounts from config: {e}")
-
-    return scroll_up_amount, scroll_down_amount
-
-
-def find_reference_icon(template_path='ref_icon.png', search_region=None, confidence=0.75):
-    """
-    Find the reference icon on screen using template matching.
-
-    Returns dict with center and match score, or None if not found.
-    """
+def _find_template_match(template_path, search_region=None, confidence=0.75):
+    """Find a template and return center/score details or None if not found."""
     try:
         template_full_path = _resolve_local_path(template_path)
         template_img = cv2.imread(template_full_path, cv2.IMREAD_GRAYSCALE)
         if template_img is None:
-            print(f"Reference icon not found or unreadable: {template_full_path}")
             return None
 
         screenshot = pyautogui.screenshot(region=search_region)
@@ -103,12 +74,58 @@ def find_reference_icon(template_path='ref_icon.png', search_region=None, confid
             'template_w': int(template_w),
             'template_h': int(template_h),
         }
+    except Exception:
+        return None
+
+
+def set_zoom_modifier_key(key_name):
+    """Set the key used as zoom modifier for scroll shortcuts (pyautogui key name)."""
+    global _ZOOM_MODIFIER_KEY
+    if key_name:
+        _ZOOM_MODIFIER_KEY = key_name
+
+
+def _get_zoom_scroll_amounts(config_path='config/ipm_config.json'):
+    """Load zoom scroll amounts from config with safe defaults."""
+    scroll_up_amount = 100
+    scroll_down_amount = -30
+    try:
+        config_full_path = _resolve_local_path(config_path)
+        if os.path.exists(config_full_path):
+            with open(config_full_path, 'r', encoding='utf-8') as config_file:
+                config = json.load(config_file)
+            scroll_up_amount = int(config.get('scroll_up_amount', scroll_up_amount))
+            scroll_down_amount = int(config.get('scroll_down_amount', scroll_down_amount))
+    except Exception as e:
+        print(f"Warning: could not read zoom scroll amounts from config: {e}")
+
+    return scroll_up_amount, scroll_down_amount
+
+
+def find_reference_icon(template_path='config/ref_icon.png', search_region=None, confidence=0.75):
+    """
+    Find the reference icon on screen using template matching.
+
+    Returns dict with center and match score, or None if not found.
+    """
+    try:
+        detection = _find_template_match(
+            template_path=template_path,
+            search_region=search_region,
+            confidence=confidence,
+        )
+        if detection is None:
+            template_full_path = _resolve_local_path(template_path)
+            if not os.path.exists(template_full_path):
+                print(f"Reference icon not found or unreadable: {template_full_path}")
+            return None
+        return detection
     except Exception as e:
         print(f"Error finding reference icon: {e}")
         return None
 
 
-def save_reference_icon_anchor(template_path='ref_icon.png', config_path='ipm_config.json', confidence=0.75):
+def save_reference_icon_anchor(template_path='config/ref_icon.png', config_path='config/ipm_config.json', confidence=0.75):
     """
     Detect current reference icon position and save as startup anchor coordinates.
     """
@@ -158,7 +175,7 @@ def save_reference_icon_anchor(template_path='ref_icon.png', config_path='ipm_co
     return payload
 
 
-def align_screen_to_reference_icon(config_path='ipm_config.json', tolerance_px=30, max_attempts=8):
+def align_screen_to_reference_icon(config_path='config/ipm_config.json', tolerance_px=30, max_attempts=8):
     """
     Align the map by dragging until the reference icon is within tolerance.
     """
@@ -171,7 +188,7 @@ def align_screen_to_reference_icon(config_path='ipm_config.json', tolerance_px=3
         with open(config_full_path, 'r', encoding='utf-8') as config_file:
             config = json.load(config_file)
 
-        template_path = config.get('template_path', 'ref_icon.png')
+        template_path = config.get('template_path', 'config/ref_icon.png')
         target_x = int(config['target_x'])
         target_y = int(config['target_y'])
 
@@ -493,7 +510,7 @@ def zoom_to_max_then_down_one():
     1) Hold modifier and scroll up 5 times
     2) Hold modifier and scroll down 5 times
     """
-    scroll_up_amount, scroll_down_amount = _get_zoom_scroll_amounts(config_path='ipm_config.json')
+    scroll_up_amount, scroll_down_amount = _get_zoom_scroll_amounts(config_path='config/ipm_config.json')
     time.sleep(2)  # Wait for BlueStacks to be ready before zoom input
     
     # Zoom in to maximum (hold Ctrl, scroll up 5 times, then release Ctrl)

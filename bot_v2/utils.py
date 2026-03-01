@@ -8,11 +8,17 @@ import easyocr
 import re
 import numpy as np
 import cv2
+import math
 from datetime import datetime
 
 _OCR_READER = None
 _INPUT_LOG_PATH = None
 _ZOOM_MODIFIER_KEY = 'ctrlleft'
+_AD_BANNER_CACHE = {
+    'expires_at': 0.0,
+    'present': False,
+    'offset_x': 0,
+}
 
 
 def set_input_log_path(log_path):
@@ -102,6 +108,237 @@ def _get_zoom_scroll_amounts(config_path='config/ipm_config.json'):
     return scroll_up_amount, scroll_down_amount
 
 
+def _get_ad_banner_settings(config_path='config/ipm_config.json'):
+    """Load ad banner detection settings from config with safe defaults."""
+    settings = {
+        'enabled': True,
+        'template_path': 'config/ad_banner_probe.png',
+        'confidence': 0.75,
+        'offset_x': 290,
+        'cache_seconds': 2.0,
+        'search_top_px': 450,
+        'fixed_width_px': 580,
+        'pixel_threshold': 18,
+        'nonblack_ratio_threshold': 0.35,
+    }
+
+    try:
+        config_full_path = _resolve_local_path(config_path)
+        if os.path.exists(config_full_path):
+            with open(config_full_path, 'r', encoding='utf-8') as config_file:
+                config = json.load(config_file)
+
+            settings['enabled'] = bool(config.get('ad_banner_detection_enabled', settings['enabled']))
+            settings['template_path'] = str(
+                config.get('ad_banner_template_path', settings['template_path'])
+            ).strip() or settings['template_path']
+            settings['confidence'] = float(config.get('ad_banner_confidence', settings['confidence']))
+            settings['offset_x'] = int(config.get('ad_banner_offset_x', settings['offset_x']))
+            settings['cache_seconds'] = float(config.get('ad_banner_cache_seconds', settings['cache_seconds']))
+            settings['search_top_px'] = int(config.get('ad_banner_search_top_px', settings['search_top_px']))
+            settings['fixed_width_px'] = int(config.get('ad_banner_fixed_width_px', settings['fixed_width_px']))
+            settings['pixel_threshold'] = int(config.get('ad_banner_pixel_threshold', settings['pixel_threshold']))
+            settings['nonblack_ratio_threshold'] = float(
+                config.get('ad_banner_nonblack_ratio_threshold', settings['nonblack_ratio_threshold'])
+            )
+    except Exception as e:
+        print(f"Warning: could not read ad banner settings from config: {e}")
+
+    return settings
+
+
+def _detect_ad_banner_left_strip(
+    fixed_width_px=580,
+    search_top_px=450,
+    pixel_threshold=18,
+    nonblack_ratio_threshold=0.35,
+):
+    """
+    Detect ad banner by measuring non-black pixel density in the left strip.
+    """
+    try:
+        screenshot_np = np.array(pyautogui.screenshot().convert('RGB'))
+        screen_h, screen_w = screenshot_np.shape[:2]
+
+        strip_w = max(1, min(int(fixed_width_px), int(screen_w)))
+        top_h = max(1, min(int(search_top_px), int(screen_h)))
+
+        left_top = screenshot_np[:top_h, :strip_w, :]
+        gray = cv2.cvtColor(left_top, cv2.COLOR_RGB2GRAY)
+        nonblack_ratio = float((gray > int(pixel_threshold)).sum()) / float(gray.size)
+        is_present = nonblack_ratio >= float(nonblack_ratio_threshold)
+        return is_present, nonblack_ratio
+    except Exception:
+        return False, 0.0
+
+
+def detect_ad_banner(template_path='config/ad_banner_probe.png', confidence=0.75, search_region=None, settings=None):
+    """
+    Detect whether an ad banner is visible.
+
+    Uses left-strip heuristic first (robust for fixed-width left ad), then template fallback.
+    """
+    effective_settings = settings or {}
+
+    strip_present, strip_ratio = _detect_ad_banner_left_strip(
+        fixed_width_px=int(effective_settings.get('fixed_width_px', 580)),
+        search_top_px=int(effective_settings.get('search_top_px', 450)),
+        pixel_threshold=int(effective_settings.get('pixel_threshold', 18)),
+        nonblack_ratio_threshold=float(effective_settings.get('nonblack_ratio_threshold', 0.35)),
+    )
+    if strip_present:
+        return True, {
+            'method': 'left_strip',
+            'score': float(strip_ratio),
+        }
+
+    template_full_path = _resolve_local_path(template_path)
+    template_img = cv2.imread(template_full_path, cv2.IMREAD_GRAYSCALE)
+    if template_img is None:
+        return False, {
+            'method': 'left_strip_only',
+            'score': float(strip_ratio),
+        }
+
+    safe_region = search_region
+    if safe_region is not None:
+        _, _, region_w, region_h = safe_region
+        template_h, template_w = template_img.shape
+        if template_w > int(region_w) or template_h > int(region_h):
+            safe_region = None
+
+    detection = _find_template_match(
+        template_path=template_path,
+        search_region=safe_region,
+        confidence=confidence,
+    )
+    if detection is not None:
+        return True, {
+            'method': 'template',
+            'score': float(detection.get('score', 0.0)),
+        }
+
+    return False, {
+        'method': 'left_strip',
+        'score': float(strip_ratio),
+    }
+
+
+def get_active_ad_x_offset(config_path='config/ipm_config.json', force_refresh=False):
+    """
+    Return the active X offset caused by ad banner presence.
+
+    Returns configured offset (default +290) when ad is detected, else 0.
+    """
+    global _AD_BANNER_CACHE
+
+    settings = _get_ad_banner_settings(config_path=config_path)
+    if not settings['enabled']:
+        _AD_BANNER_CACHE = {
+            'expires_at': 0.0,
+            'present': False,
+            'offset_x': 0,
+        }
+        return 0
+
+    now = time.time()
+    if (not force_refresh) and now < float(_AD_BANNER_CACHE.get('expires_at', 0.0)):
+        return int(_AD_BANNER_CACHE.get('offset_x', 0))
+
+    search_region = None
+    try:
+        top_px = max(1, int(settings['search_top_px']))
+        screen_width, screen_height = pyautogui.size()
+        search_region = (0, 0, int(screen_width), int(min(screen_height, top_px)))
+    except Exception:
+        search_region = None
+
+    is_present, detection_meta = detect_ad_banner(
+        template_path=settings['template_path'],
+        confidence=float(settings['confidence']),
+        search_region=search_region,
+        settings=settings,
+    )
+
+    active_offset = int(settings['offset_x']) if is_present else 0
+    previous_present = bool(_AD_BANNER_CACHE.get('present', False))
+
+    _AD_BANNER_CACHE = {
+        'expires_at': now + max(0.2, float(settings['cache_seconds'])),
+        'present': is_present,
+        'offset_x': active_offset,
+        'method': str(detection_meta.get('method', 'unknown')),
+        'score': float(detection_meta.get('score', 0.0)),
+    }
+
+    if is_present != previous_present:
+        if is_present:
+            print(
+                f"Ad banner detected via {_AD_BANNER_CACHE['method']} "
+                f"(score={_AD_BANNER_CACHE['score']:.3f}); applying X offset +{active_offset}px"
+            )
+        else:
+            print(
+                f"Ad banner not detected via {_AD_BANNER_CACHE['method']} "
+                f"(score={_AD_BANNER_CACHE['score']:.3f}); using X offset +0px"
+            )
+
+    return active_offset
+
+
+def _resolve_runtime_anchor_target_x(config, config_path='config/ipm_config.json', force_refresh_ad=False):
+    """
+    Resolve runtime target_x from stored anchor mode.
+
+    Modes:
+    - normalized: stored target_x is baseline without ad shift.
+    - legacy_with_ad_banner: stored target_x was captured while ad was visible.
+    """
+    settings = _get_ad_banner_settings(config_path=config_path)
+    configured_offset_x = int(settings['offset_x'])
+    active_offset_x = int(get_active_ad_x_offset(config_path=config_path, force_refresh=force_refresh_ad))
+
+    anchor_mode = str(config.get('anchor_x_mode', 'legacy_with_ad_banner')).strip().lower()
+    stored_target_x = int(config['target_x'])
+
+    if anchor_mode == 'normalized':
+        return stored_target_x + active_offset_x
+
+    if anchor_mode == 'legacy_with_ad_banner':
+        return stored_target_x - configured_offset_x + active_offset_x
+
+    return stored_target_x + active_offset_x
+
+
+def _resolve_runtime_x_from_mode(stored_x, mode, config_path='config/ipm_config.json', force_refresh_ad=False):
+    """Resolve runtime X from a stored X using mode + current ad state."""
+    settings = _get_ad_banner_settings(config_path=config_path)
+    configured_offset_x = int(settings['offset_x'])
+    active_offset_x = int(get_active_ad_x_offset(config_path=config_path, force_refresh=force_refresh_ad))
+    normalized_mode = str(mode or 'legacy_with_ad_banner').strip().lower()
+
+    if normalized_mode == 'normalized':
+        return int(stored_x) + active_offset_x
+
+    if normalized_mode == 'legacy_with_ad_banner':
+        return int(stored_x) - configured_offset_x + active_offset_x
+
+    return int(stored_x) + active_offset_x
+
+
+def _get_grid_x_mode(config_path='config/ipm_config.json'):
+    """Get how grid X coordinates were originally captured."""
+    try:
+        config_full_path = _resolve_local_path(config_path)
+        if os.path.exists(config_full_path):
+            with open(config_full_path, 'r', encoding='utf-8') as config_file:
+                config = json.load(config_file)
+            return str(config.get('grid_x_mode', 'legacy_with_ad_banner')).strip().lower() or 'legacy_with_ad_banner'
+    except Exception:
+        pass
+    return 'legacy_with_ad_banner'
+
+
 def find_reference_icon(template_path='config/ref_icon.png', search_region=None, confidence=0.75):
     """
     Find the reference icon on screen using template matching.
@@ -155,10 +392,14 @@ def save_reference_icon_anchor(template_path='config/ref_icon.png', config_path=
             existing_scroll_up_amount = 100
             existing_scroll_down_amount = -30
 
+    ad_offset_x = get_active_ad_x_offset(config_path=config_path, force_refresh=True)
+    normalized_target_x = int(detection['center_x']) - int(ad_offset_x)
+
     payload = {
         'template_path': template_path,
-        'target_x': detection['center_x'],
+        'target_x': normalized_target_x,
         'target_y': detection['center_y'],
+        'anchor_x_mode': 'normalized',
         'scroll_start_grid': existing_scroll_start_grid,
         'currency_region_start_grid': existing_currency_region_start_grid,
         'currency_region_end_grid': existing_currency_region_end_grid,
@@ -171,7 +412,10 @@ def save_reference_icon_anchor(template_path='config/ref_icon.png', config_path=
     with open(config_full_path, 'w', encoding='utf-8') as config_file:
         json.dump(payload, config_file, indent=2)
 
-    print(f"Saved reference icon anchor: ({payload['target_x']}, {payload['target_y']}) -> {config_full_path}")
+    print(
+        f"Saved reference icon anchor: ({payload['target_x']}, {payload['target_y']}) "
+        f"[normalized by ad offset {ad_offset_x}px] -> {config_full_path}"
+    )
     return payload
 
 
@@ -189,7 +433,11 @@ def align_screen_to_reference_icon(config_path='config/ipm_config.json', toleran
             config = json.load(config_file)
 
         template_path = config.get('template_path', 'config/ref_icon.png')
-        target_x = int(config['target_x'])
+        target_x = _resolve_runtime_anchor_target_x(
+            config=config,
+            config_path=config_path,
+            force_refresh_ad=True,
+        )
         target_y = int(config['target_y'])
 
         for attempt in range(1, max_attempts + 1):
@@ -207,10 +455,18 @@ def align_screen_to_reference_icon(config_path='config/ipm_config.json', toleran
                 print(f"Reference aligned within tolerance ({tolerance_px}px): dx={dx}, dy={dy}")
                 return True
 
-            # Use slow, small drags to avoid BlueStacks momentum after release.
-            # Apply only a fraction of the remaining offset each attempt.
-            step_dx = int(max(-80, min(80, dx * 0.5)))
-            step_dy = int(max(-60, min(60, dy * 0.5)))
+            # Use slightly longer drags so BlueStacks consistently registers map movement.
+            # Apply a larger fraction of remaining offset each attempt.
+            step_dx = int(max(-140, min(140, dx * 0.7)))
+            step_dy = int(max(-110, min(110, dy * 0.7)))
+
+            # Ensure drag distance is substantial enough to be recognized.
+            min_drag_distance_px = 35
+            step_distance = math.hypot(step_dx, step_dy)
+            if step_distance > 0 and step_distance < min_drag_distance_px:
+                scale = float(min_drag_distance_px) / float(step_distance)
+                step_dx = int(round(step_dx * scale))
+                step_dy = int(round(step_dy * scale))
 
             # Ensure we still move when non-zero offset exists
             if step_dx == 0 and dx != 0:
@@ -220,8 +476,8 @@ def align_screen_to_reference_icon(config_path='config/ipm_config.json', toleran
 
             pyautogui.moveTo(current_x, current_y, duration=0.12)
 
-            # Break movement into tiny chunks to minimize inertia.
-            chunk_count = max(1, max(abs(step_dx) // 20, abs(step_dy) // 20))
+            # Break movement into moderate chunks: long enough to register, short enough to avoid inertia.
+            chunk_count = max(1, max(abs(step_dx) // 45, abs(step_dy) // 45))
             chunk_dx = step_dx / chunk_count
             chunk_dy = step_dy / chunk_count
 
@@ -237,14 +493,14 @@ def align_screen_to_reference_icon(config_path='config/ipm_config.json', toleran
                     if this_dy == 0 and step_dy != 0:
                         this_dy = 1 if step_dy > 0 else -1
 
-                    pyautogui.moveRel(this_dx, this_dy, duration=0.18)
+                    pyautogui.moveRel(this_dx, this_dy, duration=0.22)
                     log_input_event(
                         'mouse_drag',
                         '',
                         '',
                         f'start_x={current_x};start_y={current_y};dx={this_dx};dy={this_dy};attempt={attempt};chunk={chunk_index+1}/{chunk_count}'
                     )
-                    time.sleep(0.08)
+                    time.sleep(0.06)
             finally:
                 pyautogui.mouseUp(button='left')
                 log_input_event('mouse_up', '', '', f'attempt={attempt}')
@@ -371,7 +627,13 @@ def _save_currency_debug_screenshot(screenshot, region, debug_dir):
     return output_path
 
 
-def get_grid_midpoint(grid_code, coords_file='grid/screen_grid_coords.txt', box_size=100):
+def get_grid_midpoint(
+    grid_code,
+    coords_file='grid/screen_grid_coords.txt',
+    box_size=100,
+    config_path='config/ipm_config.json',
+    apply_ad_offset=True,
+):
     """
     Read a grid code (e.g., 'O15') and return the midpoint coordinates of that cell.
     
@@ -409,6 +671,14 @@ def get_grid_midpoint(grid_code, coords_file='grid/screen_grid_coords.txt', box_
                         # Return midpoint (add half of box_size to get center)
                         midpoint_x = x + (box_size // 2)
                         midpoint_y = y + (box_size // 2)
+
+                        if apply_ad_offset:
+                            midpoint_x = _resolve_runtime_x_from_mode(
+                                stored_x=midpoint_x,
+                                mode=_get_grid_x_mode(config_path=config_path),
+                                config_path=config_path,
+                                force_refresh_ad=False,
+                            )
                         
                         return (midpoint_x, midpoint_y)
         
@@ -423,7 +693,14 @@ def get_grid_midpoint(grid_code, coords_file='grid/screen_grid_coords.txt', box_
         return None
 
 
-def get_grid_region(top_left_code, bottom_right_code, coords_file='grid/screen_grid_coords.txt', box_size=100):
+def get_grid_region(
+    top_left_code,
+    bottom_right_code,
+    coords_file='grid/screen_grid_coords.txt',
+    box_size=100,
+    config_path='config/ipm_config.json',
+    apply_ad_offset=True,
+):
     """
     Return a screenshot region tuple (x, y, width, height) bounded by two grid cells.
 
@@ -459,6 +736,14 @@ def get_grid_region(top_left_code, bottom_right_code, coords_file='grid/screen_g
         x2, y2 = end
         width = (x2 - x1) + box_size
         height = (y2 - y1) + box_size
+        if apply_ad_offset:
+            x1 = _resolve_runtime_x_from_mode(
+                stored_x=x1,
+                mode=_get_grid_x_mode(config_path=config_path),
+                config_path=config_path,
+                force_refresh_ad=False,
+            )
+
         return (x1, y1, width, height)
     except Exception as e:
         print(f"Error building grid region: {e}")

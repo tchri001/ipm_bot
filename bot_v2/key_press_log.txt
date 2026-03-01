@@ -1,57 +1,38 @@
 timestamp,event,key,scan_code,details
-2026-03-01 00:23:52.331398,mouse_move,,,x=1950;y=850
-2026-03-01 00:23:52.441404,mouse_click,,,x=1950;y=850;button=left
-2026-03-01 00:23:53.063400,mouse_down,,,x=1546;y=1072;attempt=1
-2026-03-01 00:23:53.411188,mouse_drag,,,start_x=1546;start_y=1072;dx=26;dy=-20;attempt=1;chunk=1/3
-2026-03-01 00:23:53.840803,mouse_drag,,,start_x=1546;start_y=1072;dx=26;dy=-20;attempt=1;chunk=2/3
-2026-03-01 00:23:54.266243,mouse_drag,,,start_x=1546;start_y=1072;dx=26;dy=-20;attempt=1;chunk=3/3
-2026-03-01 00:23:54.451482,mouse_up,,,attempt=1
-2026-03-01 00:23:55.498879,mouse_down,,,x=1607;y=1025;attempt=2
-2026-03-01 00:23:55.841989,mouse_drag,,,start_x=1607;start_y=1025;dx=16;dy=-20;attempt=2;chunk=1/3
-2026-03-01 00:23:56.267598,mouse_drag,,,start_x=1607;start_y=1025;dx=16;dy=-20;attempt=2;chunk=2/3
-2026-03-01 00:23:56.694365,mouse_drag,,,start_x=1607;start_y=1025;dx=16;dy=-20;attempt=2;chunk=3/3
-2026-03-01 00:23:56.877804,mouse_up,,,attempt=2
-2026-03-01 00:23:57.907130,mouse_down,,,x=1644;y=978;attempt=3
-2026-03-01 00:23:58.255384,mouse_drag,,,start_x=1644;start_y=978;dx=10;dy=-20;attempt=3;chunk=1/3
-2026-03-01 00:23:58.681329,mouse_drag,,,start_x=1644;start_y=978;dx=10;dy=-20;attempt=3;chunk=2/3
-2026-03-01 00:23:59.107761,mouse_drag,,,start_x=1644;start_y=978;dx=10;dy=-20;attempt=3;chunk=3/3
-2026-03-01 00:23:59.290784,mouse_up,,,attempt=3
-2026-03-01 00:24:00.341554,mouse_down,,,x=1667;y=931;attempt=4
-2026-03-01 00:24:00.685620,mouse_drag,,,start_x=1667;start_y=931;dx=6;dy=-20;attempt=4;chunk=1/3
-2026-03-01 00:24:01.109814,mouse_drag,,,start_x=1667;start_y=931;dx=6;dy=-20;attempt=4;chunk=2/3
-2026-03-01 00:24:01.534798,mouse_drag,,,start_x=1667;start_y=931;dx=6;dy=-20;attempt=4;chunk=3/3
-2026-03-01 00:24:01.719404,mouse_up,,,attempt=4
-2026-03-01 00:24:02.775192,mouse_down,,,x=1681;y=884;attempt=5
-2026-03-01 00:24:03.118450,mouse_drag,,,start_x=1681;start_y=884;dx=4;dy=-20;attempt=5;chunk=1/3
-2026-03-01 00:24:03.542206,mouse_drag,,,start_x=1681;start_y=884;dx=4;dy=-20;attempt=5;chunk=2/3
-2026-03-01 00:24:03.966140,mouse_drag,,,start_x=1681;start_y=884;dx=4;dy=-20;attempt=5;chunk=3/3
-2026-03-01 00:24:04.150416,mouse_up,,,attempt=5
-2026-03-01 00:24:05.184768,mouse_down,,,x=1690;y=837;attempt=6
-2026-03-01 00:24:05.529949,mouse_drag,,,start_x=1690;start_y=837;dx=4;dy=-26;attempt=6;chunk=1/2
-2026-03-01 00:24:05.954002,mouse_drag,,,start_x=1690;start_y=837;dx=4;dy=-26;attempt=6;chunk=2/2
-2026-03-01 00:24:06.136799,mouse_up,,,attempt=6
-2026-03-01 00:24:07.201359,mouse_down,,,x=1695;y=802;attempt=7
-2026-03-01 00:24:07.544565,mouse_drag,,,start_x=1695;start_y=802;dx=4;dy=-35;attempt=7;chunk=1/1
-2026-03-01 00:24:07.736493,mouse_up,,,attempt=7
-2026-03-01 00:24:08.790507,mouse_down,,,x=1696;y=790;attempt=8
-2026-03-01 00:24:09.134820,mouse_drag,,,start_x=1696;start_y=790;dx=4;dy=-29;attempt=8;chunk=1/1
-2026-03-01 00:24:09.319728,mouse_up,,,attempt=8
-2026-03-01 00:24:10.127272,mouse_move,,,x=1950;y=850;phase=pre_zoom_reposition
-2026-03-01 00:24:10.245505,mouse_click,,,x=1950;y=850;button=left;phase=pre_zoom_reposition
-2026-03-01 00:24:12.251152,down,left ctrl,-162,keyboard_hook
-2026-03-01 00:24:12.854931,mouse_scroll,,,amount=100;zoom_in_iter=1
-2026-03-01 00:24:13.059412,mouse_scroll,,,amount=100;zoom_in_iter=2
-2026-03-01 00:24:13.261214,mouse_scroll,,,amount=100;zoom_in_iter=3
-2026-03-01 00:24:13.463354,mouse_scroll,,,amount=100;zoom_in_iter=4
-2026-03-01 00:24:13.666709,mouse_scroll,,,amount=100;zoom_in_iter=5
-2026-03-01 00:24:13.768347,up,left ctrl,-162,keyboard_hook
-2026-03-01 00:24:14.774903,down,left ctrl,-162,keyboard_hook
-2026-03-01 00:24:15.377616,mouse_scroll,,,amount=-30;zoom_out_iter=1
-2026-03-01 00:24:15.579202,mouse_scroll,,,amount=-30;zoom_out_iter=2
-2026-03-01 00:24:15.785399,mouse_scroll,,,amount=-30;zoom_out_iter=3
-2026-03-01 00:24:15.987007,mouse_scroll,,,amount=-30;zoom_out_iter=4
-2026-03-01 00:24:16.189846,mouse_scroll,,,amount=-30;zoom_out_iter=5
-2026-03-01 00:24:16.291397,up,left ctrl,-162,keyboard_hook
-2026-03-01 00:24:17.802113,down,q,16,keyboard_hook
-2026-03-01 00:24:18.119143,up,q,16,keyboard_hook
-2026-03-01 00:24:19.615888,down,q,16,keyboard_hook
+2026-03-01 23:57:21.692454,mouse_move,,,x=1950;y=850
+2026-03-01 23:57:21.803666,mouse_click,,,x=1950;y=850;button=left
+2026-03-01 23:57:22.519708,mouse_down,,,x=1583;y=1082;attempt=1
+2026-03-01 23:57:22.898642,mouse_drag,,,start_x=1583;start_y=1082;dx=42;dy=-55;attempt=1;chunk=1/2
+2026-03-01 23:57:23.337354,mouse_drag,,,start_x=1583;start_y=1082;dx=42;dy=-55;attempt=1;chunk=2/2
+2026-03-01 23:57:23.499574,mouse_up,,,attempt=1
+2026-03-01 23:57:24.536179,mouse_down,,,x=1656;y=986;attempt=2
+2026-03-01 23:57:24.915408,mouse_drag,,,start_x=1656;start_y=986;dx=16;dy=-55;attempt=2;chunk=1/2
+2026-03-01 23:57:25.353292,mouse_drag,,,start_x=1656;start_y=986;dx=16;dy=-55;attempt=2;chunk=2/2
+2026-03-01 23:57:25.515669,mouse_up,,,attempt=2
+2026-03-01 23:57:26.560239,mouse_down,,,x=1684;y=890;attempt=3
+2026-03-01 23:57:26.940728,mouse_drag,,,start_x=1684;start_y=890;dx=7;dy=-55;attempt=3;chunk=1/2
+2026-03-01 23:57:27.387373,mouse_drag,,,start_x=1684;start_y=890;dx=7;dy=-55;attempt=3;chunk=2/2
+2026-03-01 23:57:27.549008,mouse_up,,,attempt=3
+2026-03-01 23:57:28.575905,mouse_down,,,x=1696;y=794;attempt=4
+2026-03-01 23:57:28.957727,mouse_drag,,,start_x=1696;start_y=794;dx=5;dy=-44;attempt=4;chunk=1/1
+2026-03-01 23:57:29.119484,mouse_up,,,attempt=4
+2026-03-01 23:57:30.186320,mouse_down,,,x=1699;y=772;attempt=5
+2026-03-01 23:57:30.564326,mouse_drag,,,start_x=1699;start_y=772;dx=4;dy=-35;attempt=5;chunk=1/1
+2026-03-01 23:57:30.727032,mouse_up,,,attempt=5
+2026-03-01 23:57:31.854301,mouse_move,,,x=1950;y=850;phase=pre_zoom_reposition
+2026-03-01 23:57:31.960165,mouse_click,,,x=1950;y=850;button=left;phase=pre_zoom_reposition
+2026-03-01 23:57:33.962355,down,left ctrl,-162,keyboard_hook
+2026-03-01 23:57:34.564358,mouse_scroll,,,amount=100;zoom_in_iter=1
+2026-03-01 23:57:34.769547,mouse_scroll,,,amount=100;zoom_in_iter=2
+2026-03-01 23:57:34.971479,mouse_scroll,,,amount=100;zoom_in_iter=3
+2026-03-01 23:57:35.178826,mouse_scroll,,,amount=100;zoom_in_iter=4
+2026-03-01 23:57:35.380942,mouse_scroll,,,amount=100;zoom_in_iter=5
+2026-03-01 23:57:35.482442,up,left ctrl,-162,keyboard_hook
+2026-03-01 23:57:36.485839,down,left ctrl,-162,keyboard_hook
+2026-03-01 23:57:37.088274,mouse_scroll,,,amount=-30;zoom_out_iter=1
+2026-03-01 23:57:37.291052,mouse_scroll,,,amount=-30;zoom_out_iter=2
+2026-03-01 23:57:37.492922,mouse_scroll,,,amount=-30;zoom_out_iter=3
+2026-03-01 23:57:37.694928,mouse_scroll,,,amount=-30;zoom_out_iter=4
+2026-03-01 23:57:37.896041,mouse_scroll,,,amount=-30;zoom_out_iter=5
+2026-03-01 23:57:37.997785,up,left ctrl,-162,keyboard_hook
+2026-03-01 23:57:41.356539,down,q,16,keyboard_hook

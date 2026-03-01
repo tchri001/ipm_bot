@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 
-from utils import find_reference_icon, _resolve_local_path
+from utils import find_reference_icon, get_active_ad_x_offset, _resolve_local_path
 
 
 def calibrate_anchor(template_path='config/ref_ship.png', config_path='config/ipm_config.json', confidence=0.75):
@@ -25,9 +25,12 @@ def calibrate_anchor(template_path='config/ref_ship.png', config_path='config/ip
         except Exception:
             payload = {}
 
+    ad_offset_x = get_active_ad_x_offset(config_path=config_path, force_refresh=True)
+
     payload['template_path'] = template_path
-    payload['target_x'] = int(detection['center_x'])
+    payload['target_x'] = int(detection['center_x']) - int(ad_offset_x)
     payload['target_y'] = int(detection['center_y'])
+    payload['anchor_x_mode'] = 'normalized'
     payload['confidence'] = float(confidence)
     payload['saved_at'] = datetime.now().isoformat()
 
@@ -38,7 +41,7 @@ def calibrate_anchor(template_path='config/ref_ship.png', config_path='config/ip
         json.dump(payload, config_file, indent=2)
 
     print(f"Anchor updated using {template_path}")
-    print(f"target_x={payload['target_x']}, target_y={payload['target_y']}")
+    print(f"target_x={payload['target_x']}, target_y={payload['target_y']}, ad_offset_norm={ad_offset_x}")
     print(f"Saved config: {config_full_path}")
     return True
 

@@ -52,11 +52,11 @@ def setup_game_log(log_path):
     print(f"Logging console output to: {log_path}")
 
 
-def open_resources_tab():
+def open_resources_tab(interface_search_start, interface_search_end):
     """Open and verify the resources tab."""
     resources_open = open_resources_interface(
-        interface_search_start='M17',
-        interface_search_end='V17',
+        interface_search_start=interface_search_start,
+        interface_search_end=interface_search_end,
         verify_search_start='S8',
         verify_search_end='V9',
         closed_icon_template='config/icons/tabs/resources_icon_closed.png',
@@ -236,11 +236,14 @@ def unlock_planet(
     return detection
 
 
-def sell_ores(ore_name):
+def sell_ores(ore_name, taskbar_search_start_grid, taskbar_search_end_grid):
     ore_code = str(ore_name).strip().lower()
     template_path = f'config/icons/ores/{ore_code}.png'
 
-    resources_open = open_resources_tab()
+    resources_open = open_resources_tab(
+        interface_search_start=taskbar_search_start_grid,
+        interface_search_end=taskbar_search_end_grid,
+    )
     if not resources_open:
         log_input_event(
             'ore_sell',
@@ -344,14 +347,17 @@ def sell_ores(ore_name):
         )
     )
 
-    close_tab_region = get_grid_region('M17', 'V17')
+    close_tab_region = get_grid_region(taskbar_search_start_grid, taskbar_search_end_grid)
     close_tab_template_path = 'config/icons/tabs/resources_icon_open.png'
     if close_tab_region is None:
         log_input_event(
             'ore_sell',
             '',
             '',
-            f'ore={ore_code};template={close_tab_template_path};status=close_tab_region_error;region=M17-V17'
+            (
+                f'ore={ore_code};template={close_tab_template_path};status=close_tab_region_error;'
+                f'region={taskbar_search_start_grid}-{taskbar_search_end_grid}'
+            )
         )
     else:
         close_tab_detection = find_template_match(
@@ -381,7 +387,10 @@ def sell_ores(ore_name):
                 'ore_sell',
                 '',
                 '',
-                f'ore={ore_code};template={close_tab_template_path};status=resources_open_icon_not_found;region=M17-V17'
+                (
+                    f'ore={ore_code};template={close_tab_template_path};status=resources_open_icon_not_found;'
+                    f'region={taskbar_search_start_grid}-{taskbar_search_end_grid}'
+                )
             )
             print("Could not find resources open icon to close tab")
 
@@ -594,12 +603,20 @@ def load_runtime_config(base_dir):
     default_scroll_start_grid = "T9"
     default_currency_region_start_grid = "I1"
     default_currency_region_end_grid = "P2"
+    default_galaxy_value_region_start_grid = "M3"
+    default_galaxy_value_region_end_grid = "P4"
+    default_taskbar_search_start_grid = "M17"
+    default_taskbar_search_end_grid = "V17"
     enable_focus_click = True  # Toggle this on/off for pre-zoom focus click
     run_window_setup = True
 
     grid_target = default_scroll_start_grid
     currency_region_start_grid = default_currency_region_start_grid
     currency_region_end_grid = default_currency_region_end_grid
+    galaxy_value_region_start_grid = default_galaxy_value_region_start_grid
+    galaxy_value_region_end_grid = default_galaxy_value_region_end_grid
+    taskbar_search_start_grid = default_taskbar_search_start_grid
+    taskbar_search_end_grid = default_taskbar_search_end_grid
 
     config_changed = False
     try:
@@ -619,6 +636,22 @@ def load_runtime_config(base_dir):
             if config_currency_end:
                 currency_region_end_grid = config_currency_end
 
+            config_galaxy_value_start = str(config_data.get('galaxy_value_region_start_grid', '')).strip().upper()
+            if config_galaxy_value_start:
+                galaxy_value_region_start_grid = config_galaxy_value_start
+
+            config_galaxy_value_end = str(config_data.get('galaxy_value_region_end_grid', '')).strip().upper()
+            if config_galaxy_value_end:
+                galaxy_value_region_end_grid = config_galaxy_value_end
+
+            config_taskbar_start = str(config_data.get('taskbar_search_start_grid', '')).strip().upper()
+            if config_taskbar_start:
+                taskbar_search_start_grid = config_taskbar_start
+
+            config_taskbar_end = str(config_data.get('taskbar_search_end_grid', '')).strip().upper()
+            if config_taskbar_end:
+                taskbar_search_end_grid = config_taskbar_end
+
             if 'enable_focus_click' in config_data:
                 enable_focus_click = bool(config_data.get('enable_focus_click'))
 
@@ -633,6 +666,18 @@ def load_runtime_config(base_dir):
                 config_changed = True
             if 'currency_region_end_grid' not in config_data:
                 config_data['currency_region_end_grid'] = default_currency_region_end_grid
+                config_changed = True
+            if 'galaxy_value_region_start_grid' not in config_data:
+                config_data['galaxy_value_region_start_grid'] = default_galaxy_value_region_start_grid
+                config_changed = True
+            if 'galaxy_value_region_end_grid' not in config_data:
+                config_data['galaxy_value_region_end_grid'] = default_galaxy_value_region_end_grid
+                config_changed = True
+            if 'taskbar_search_start_grid' not in config_data:
+                config_data['taskbar_search_start_grid'] = default_taskbar_search_start_grid
+                config_changed = True
+            if 'taskbar_search_end_grid' not in config_data:
+                config_data['taskbar_search_end_grid'] = default_taskbar_search_end_grid
                 config_changed = True
             if 'enable_focus_click' not in config_data:
                 config_data['enable_focus_click'] = enable_focus_click
@@ -658,8 +703,8 @@ def load_runtime_config(base_dir):
     rx, ry, rw, rh = currency_region
     currency_region = (rx, ry + 50, rw, max(1, rh - 100))
 
-    # Galaxy value region from M3-P4, trimmed by 5% left/right, 20% top, and 35% bottom
-    galaxy_value_region = get_grid_region('M3', 'P4')
+    # Galaxy value region from config bounds, trimmed by 5% left/right, 20% top, and 35% bottom
+    galaxy_value_region = get_grid_region(galaxy_value_region_start_grid, galaxy_value_region_end_grid)
     if galaxy_value_region is None:
         galaxy_value_region = (1200, 200, 400, 200)
         print("Using fallback galaxy value region (1200, 200, 400, 200)")
@@ -684,6 +729,10 @@ def load_runtime_config(base_dir):
         'grid_target': grid_target,
         'currency_region_start_grid': currency_region_start_grid,
         'currency_region_end_grid': currency_region_end_grid,
+        'galaxy_value_region_start_grid': galaxy_value_region_start_grid,
+        'galaxy_value_region_end_grid': galaxy_value_region_end_grid,
+        'taskbar_search_start_grid': taskbar_search_start_grid,
+        'taskbar_search_end_grid': taskbar_search_end_grid,
         'enable_focus_click': enable_focus_click,
         'run_window_setup': run_window_setup,
         'currency_region': currency_region,
@@ -766,19 +815,25 @@ def game_window_setup(base_dir, runtime_config, run_setup=True):
     return None
 
 
-def run_gameplay_loop(currency_region, galaxy_value_region, debug_dir_name):
+def run_gameplay_loop(
+    currency_region,
+    galaxy_value_region,
+    debug_dir_name,
+    taskbar_search_start_grid,
+    taskbar_search_end_grid,
+):
     """
     Gameplay logic starts here.
     Setup/calibration should be completed before calling this function.
     """
     #unlock_planet("Q8","Q9","p1",20,0)
-    #sell_ores("copper")
+    #sell_ores("copper", taskbar_search_start_grid, taskbar_search_end_grid)
     #unlock_planet("R8","R8","p2",0,0)
-    #sell_ores("iron")
-    #open_resources_tab()
+    #sell_ores("iron", taskbar_search_start_grid, taskbar_search_end_grid)
+    #open_resources_tab(taskbar_search_start_grid, taskbar_search_end_grid)
     #unlock_planet("R10","S11","p3",10,10)
     #unlock_planet("P11","Q11","p4",0,10)
-    #sell_ores("lead")
+    #sell_ores("lead", taskbar_search_start_grid, taskbar_search_end_grid)
 
     """
     planets = ["p1", "p2", "p3", "p4"]
@@ -832,9 +887,13 @@ if __name__ == "__main__":
     currency_region = runtime_config['currency_region']
     galaxy_value_region = runtime_config['galaxy_value_region']
     debug_dir_name = runtime_config['debug_dir_name']
+    taskbar_search_start_grid = runtime_config['taskbar_search_start_grid']
+    taskbar_search_end_grid = runtime_config['taskbar_search_end_grid']
 
     run_gameplay_loop(
         currency_region=currency_region,
         galaxy_value_region=galaxy_value_region,
         debug_dir_name=debug_dir_name,
+        taskbar_search_start_grid=taskbar_search_start_grid,
+        taskbar_search_end_grid=taskbar_search_end_grid,
     )

@@ -72,6 +72,193 @@ def open_resources_tab(interface_search_start, interface_search_end):
     return resources_open
 
 
+def close_projects_tab():
+    projects_tab_close_template_path = 'config/icons/projects/projects_tab.png'
+    projects_tab_close_region = get_grid_region('S8', 'U8')
+
+    if projects_tab_close_region is None:
+        log_input_event(
+            'research_project',
+            '',
+            '',
+            'status=projects_tab_close_region_error;region=S8-U8'
+        )
+        print("Could not resolve projects tab close region S8-U8")
+        return None
+
+    projects_tab_close_detection = find_template_match(
+        template_path=projects_tab_close_template_path,
+        search_region=projects_tab_close_region,
+        confidence=0.75,
+    )
+    if projects_tab_close_detection is None:
+        log_input_event(
+            'research_project',
+            '',
+            '',
+            (
+                'status=projects_tab_close_not_found;'
+                f'template={projects_tab_close_template_path};region=S8-U8'
+            )
+        )
+        print("Could not find projects tab close icon")
+        return None
+
+    close_x = int(projects_tab_close_detection['center_x'])
+    close_y = int(projects_tab_close_detection['center_y'])
+    pyautogui.moveTo(close_x, close_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={close_x};y={close_y};target=projects_tab;phase=close_projects_tab')
+    pyautogui.click(close_x, close_y)
+    log_input_event('mouse_click', '', '', f'x={close_x};y={close_y};button=left;target=projects_tab;phase=close_projects_tab')
+    print("Projects tab closed")
+    log_input_event('research_project', '', '', 'status=projects_tab_closed')
+    return projects_tab_close_detection
+
+
+def research_project(project_name, taskbar_search_start_grid, taskbar_search_end_grid):
+    project_code = str(project_name).strip().lower()
+    project_template_path = f'config/icons/projects/project_icons/{project_code}.png'
+    projects_tab_template_path = 'config/icons/tabs/projects_icon_closed.png'
+    project_available_template_path = 'config/icons/projects/project_available.png'
+    project_unavailable_template_path = 'config/icons/projects/project_unavailable.png'
+
+    print(f"Unlock project: {project_code}")
+    log_input_event('research_project', '', '', f'project={project_code};status=start')
+
+    print("Opening project tab")
+    projects_tab_region = get_grid_region(taskbar_search_start_grid, taskbar_search_end_grid)
+    if projects_tab_region is None:
+        log_input_event(
+            'research_project',
+            '',
+            '',
+            (
+                f'project={project_code};status=projects_tab_region_error;'
+                f'region={taskbar_search_start_grid}-{taskbar_search_end_grid}'
+            )
+        )
+        print("Could not resolve projects tab search region")
+        return None
+
+    projects_tab_detection = find_template_match(
+        template_path=projects_tab_template_path,
+        search_region=projects_tab_region,
+        confidence=0.75,
+    )
+    if projects_tab_detection is None:
+        log_input_event(
+            'research_project',
+            '',
+            '',
+            (
+                f'project={project_code};status=projects_tab_not_found;template={projects_tab_template_path};'
+                f'region={taskbar_search_start_grid}-{taskbar_search_end_grid}'
+            )
+        )
+        print("Projects tab icon (closed) not found")
+        return None
+
+    projects_tab_x = int(projects_tab_detection['center_x'])
+    projects_tab_y = int(projects_tab_detection['center_y'])
+    pyautogui.moveTo(projects_tab_x, projects_tab_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={projects_tab_x};y={projects_tab_y};target=projects_icon_closed;phase=research_project_open_tab')
+    pyautogui.click(projects_tab_x, projects_tab_y)
+    log_input_event('mouse_click', '', '', f'x={projects_tab_x};y={projects_tab_y};button=left;target=projects_icon_closed;phase=research_project_open_tab')
+    time.sleep(0.5)
+
+    project_icon_region = get_grid_region('M9', 'V16')
+    if project_icon_region is None:
+        log_input_event(
+            'research_project',
+            '',
+            '',
+            f'project={project_code};status=project_icon_region_error;region=M9-V16'
+        )
+        print("Could not resolve project icon search region M9-V16")
+        return None
+
+    project_detection = find_template_match(
+        template_path=project_template_path,
+        search_region=project_icon_region,
+        confidence=0.75,
+    )
+    if project_detection is None:
+        log_input_event(
+            'research_project',
+            '',
+            '',
+            (
+                f'project={project_code};status=project_icon_not_found;template={project_template_path};'
+                'region=M9-V16'
+            )
+        )
+        print(f"Project icon not found: {project_code}")
+        return None
+
+    project_x = int(project_detection['center_x'])
+    project_y = int(project_detection['center_y'])
+    pyautogui.moveTo(project_x, project_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={project_x};y={project_y};target={project_code};phase=research_project_select_project')
+    pyautogui.click(project_x, project_y)
+    log_input_event('mouse_click', '', '', f'x={project_x};y={project_y};button=left;target={project_code};phase=research_project_select_project')
+    time.sleep(0.5)
+
+    print("Checking project availability")
+    availability_region = get_grid_region('P12', 'S14')
+    if availability_region is None:
+        log_input_event(
+            'research_project',
+            '',
+            '',
+            f'project={project_code};status=availability_region_error;region=P12-S14'
+        )
+        print("Could not resolve project availability region P12-S14")
+        return None
+
+    ax, ay, aw, ah = availability_region
+    trim_y = int(ah * 0.20)
+    availability_region_trimmed = (
+        ax,
+        ay + trim_y,
+        aw,
+        max(1, ah - (trim_y * 2)),
+    )
+
+    available_detection = find_template_match(
+        template_path=project_available_template_path,
+        search_region=availability_region_trimmed,
+        confidence=0.75,
+    )
+    if available_detection is not None:
+        print("Project available")
+        available_x = int(available_detection['center_x'])
+        available_y = int(available_detection['center_y'])
+        pyautogui.moveTo(available_x, available_y, duration=0.1)
+        log_input_event('mouse_move', '', '', f'x={available_x};y={available_y};target=project_available;phase=research_project_unlock')
+        pyautogui.click(available_x, available_y)
+        log_input_event('mouse_click', '', '', f'x={available_x};y={available_y};button=left;target=project_available;phase=research_project_unlock')
+        log_input_event('research_project', '', '', f'project={project_code};status=unlocked')
+        print(f"Project unlocked: {project_code}")
+
+        close_projects_tab()
+        return available_detection
+
+    unavailable_detection = find_template_match(
+        template_path=project_unavailable_template_path,
+        search_region=availability_region_trimmed,
+        confidence=0.75,
+    )
+    if unavailable_detection is not None:
+        print("Project unavailable")
+        log_input_event('research_project', '', '', f'project={project_code};status=unavailable')
+        #TODO: ADD UNAVAILABLE LOGIC HERE
+        return unavailable_detection
+
+    print("Could not determine project availability state")
+    log_input_event('research_project', '', '', f'project={project_code};status=availability_state_unknown')
+    return None
+
+
 def unlock_planet(
     start_search_cell,
     end_search_cell,
@@ -183,7 +370,7 @@ def unlock_planet(
         print(f"Found unlocked planet icon for {planet_code}")
 
         close_tab_region = get_grid_region('S6', 'V6')
-        close_tab_template_path = 'config/icons/planets/stats/planet_tab.png'
+        close_tab_template_path = 'config/icons/planets/planet_tab.png'
         if close_tab_region is None:
             log_input_event(
                 'planet_search',
@@ -479,7 +666,7 @@ def stat_upgrade(planet, stat):
     print(close_message)
     log_input_event('stat_upgrade', '', '', close_message)
     close_tab_region = get_grid_region('S6', 'V6')
-    close_tab_template_path = 'config/icons/planets/stats/planet_tab.png'
+    close_tab_template_path = 'config/icons/planets/planet_tab.png'
     if close_tab_region is None:
         close_region_error = "could not resolve close tab region S6-V6"
         print(close_region_error)
@@ -834,6 +1021,8 @@ def run_gameplay_loop(
     #unlock_planet("R10","S11","p3",10,10)
     #unlock_planet("P11","Q11","p4",0,10)
     #sell_ores("lead", taskbar_search_start_grid, taskbar_search_end_grid)
+    #research_project("management",taskbar_search_start_grid,taskbar_search_end_grid)
+    research_project("smelter",taskbar_search_start_grid,taskbar_search_end_grid)
 
     """
     planets = ["p1", "p2", "p3", "p4"]
@@ -876,7 +1065,7 @@ if __name__ == "__main__":
     setup_game_log(game_log_path)
     runtime_config = load_runtime_config(base_dir)
     
-    setup = True
+    setup = False
     if setup == True:
         game_window_setup(
             base_dir=base_dir,

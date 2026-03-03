@@ -562,31 +562,42 @@ def _extract_currency_from_texts(texts):
     Extract currency from OCR text snippets.
     Prefers '$' anchored matches but has a fallback compact-number match.
     """
-    # 1) Strong match: number that follows '$'
+    parsed_candidates = []
+
+    def _append_parsed(raw_value):
+        parsed = _parse_compact_currency(raw_value)
+        if parsed is not None:
+            parsed_candidates.append(parsed)
+
+    # 1) Strong matches: numbers that follow '$' in each OCR snippet.
     for text in texts:
         text_upper = text.upper()
-        anchored = re.search(r'\$\s*([\d][\d,]*(?:\.\d+)?\s*[KMBTQ]?)', text_upper)
-        if anchored:
-            parsed = _parse_compact_currency(anchored.group(1))
-            if parsed is not None:
-                return parsed
+        anchored_matches = re.findall(r'\$\s*([\d][\d,]*(?:\.\d+)?\s*[KMBTQ]?)', text_upper)
+        for match_value in anchored_matches:
+            _append_parsed(match_value)
 
-    # 2) Join all snippets and try again (handles split OCR tokens like '$' + '61.91K')
+    # 2) Join all snippets and try again.
+    # Also test a compacted version to handle split OCR tokens like "$4" + ".5Q".
     joined = ' '.join(t.upper() for t in texts)
-    anchored_joined = re.search(r'\$\s*([\d][\d,]*(?:\.\d+)?\s*[KMBTQ]?)', joined)
-    if anchored_joined:
-        parsed = _parse_compact_currency(anchored_joined.group(1))
-        if parsed is not None:
-            return parsed
+    joined_compact = re.sub(r'\s+', '', joined)
 
-    # 3) Fallback: compact number with suffix even if '$' is missed by OCR
-    # Use the largest detected value to avoid tiny noise fragments.
-    candidates = re.findall(r'\b([\d][\d,]*(?:\.\d+)?\s*[KMBTQ])\b', joined)
-    parsed_candidates = [
-        _parse_compact_currency(candidate)
-        for candidate in candidates
-        if _parse_compact_currency(candidate) is not None
-    ]
+    anchored_joined_matches = re.findall(r'\$\s*([\d][\d,]*(?:\.\d+)?\s*[KMBTQ]?)', joined)
+    for match_value in anchored_joined_matches:
+        _append_parsed(match_value)
+
+    anchored_joined_compact_matches = re.findall(r'\$([\d][\d,]*(?:\.\d+)?[KMBTQ]?)', joined_compact)
+    for match_value in anchored_joined_compact_matches:
+        _append_parsed(match_value)
+
+    # 3) Fallback: compact number with suffix even if '$' is missed by OCR.
+    fallback_matches = re.findall(r'\b([\d][\d,]*(?:\.\d+)?\s*[KMBTQ])\b', joined)
+    for match_value in fallback_matches:
+        _append_parsed(match_value)
+
+    fallback_compact_matches = re.findall(r'\b([\d][\d,]*(?:\.\d+)?[KMBTQ])\b', joined_compact)
+    for match_value in fallback_compact_matches:
+        _append_parsed(match_value)
+
     if parsed_candidates:
         return max(parsed_candidates)
 
@@ -604,7 +615,7 @@ def _save_currency_debug_screenshot(screenshot, region, debug_dir):
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     x, y, width, height = region
-    filename = f"currency_region_{timestamp}_x{x}_y{y}_w{width}_h{height}.png"
+    filename = f"currency_region_x{x}_y{y}_w{width}_h{height}.png"
     output_path = os.path.join(output_dir, filename)
     screenshot.save(output_path)
 
@@ -789,16 +800,13 @@ def open_bluestacks():
         print(f"Error opening BlueStacks: {e}")
 
 
-def zoom_to_max_then_down_one():
+def zoom_to_max():
     """
-    Zoom sequence:
-    1) Hold modifier and scroll up 5 times
-    2) Hold modifier and scroll down 5 times
+    Zoom in to maximum using configured scroll amount.
     """
-    scroll_up_amount, scroll_down_amount = _get_zoom_scroll_amounts(config_path='config/ipm_config.json')
+    scroll_up_amount, _ = _get_zoom_scroll_amounts(config_path='config/ipm_config.json')
     time.sleep(2)  # Wait for BlueStacks to be ready before zoom input
-    
-    # Zoom in to maximum (hold Ctrl, scroll up 5 times, then release Ctrl)
+
     pyautogui.keyDown(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
     for i in range(5):
@@ -808,10 +816,15 @@ def zoom_to_max_then_down_one():
     pyautogui.keyUp(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
     print("Zoomed in to maximum")
-    
+
+
+def zoom_out_configured_amount():
+    """
+    Zoom out by the configured amount.
+    """
+    _, scroll_down_amount = _get_zoom_scroll_amounts(config_path='config/ipm_config.json')
     time.sleep(0.5)
-    
-    # Zoom out by a set amount (hold Ctrl, scroll down 5 times, then release Ctrl)
+
     pyautogui.keyDown(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
     for i in range(5):
@@ -821,6 +834,16 @@ def zoom_to_max_then_down_one():
     pyautogui.keyUp(_ZOOM_MODIFIER_KEY)
     time.sleep(0.4)
     print("Zoomed out by configured amount")
+
+
+def zoom_to_max_then_down_one():
+    """
+    Backward-compatible zoom sequence:
+    1) Zoom in to maximum
+    2) Zoom out by configured amount
+    """
+    zoom_to_max()
+    zoom_out_configured_amount()
 
 
 def get_currency_value_with_visualization(region=(0, 0, 1920, 150), display=True, debug_dir=None):

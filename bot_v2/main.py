@@ -7,7 +7,8 @@ from datetime import datetime
 import pyautogui
 from utils import (
     open_bluestacks,
-    zoom_to_max_then_down_one,
+    zoom_to_max,
+    zoom_out_configured_amount,
     get_currency_value_with_visualization,
     get_grid_midpoint,
     get_grid_region,
@@ -53,13 +54,6 @@ if __name__ == "__main__":
 
     # Open/focus BlueStacks
     open_bluestacks()
-
-    # Ensure reference icon anchor config exists (one-time calibration)
-    if not os.path.exists(ref_config_path):
-        print("Reference anchor config not found. Detecting ref_icon.png and saving anchor now...")
-        anchor_saved = save_reference_icon_anchor(template_path='config/ref_icon.png', config_path='config/ipm_config.json', confidence=0.75)
-        if anchor_saved is None:
-            print("Warning: could not detect reference icon to save anchor coordinates.")
 
     # Load startup grids from config and backfill keys if missing
     grid_target = default_scroll_start_grid
@@ -121,6 +115,16 @@ if __name__ == "__main__":
     else:
         print(f"Could not find grid coordinates for {grid_target}")
 
+    # Zoom in before any reference-image detection/alignment.
+    zoom_to_max()
+
+    # Ensure reference icon anchor config exists (one-time calibration)
+    if not os.path.exists(ref_config_path):
+        print("Reference anchor config not found. Detecting ref_icon.png and saving anchor now...")
+        anchor_saved = save_reference_icon_anchor(template_path='config/ref_icon.png', config_path='config/ipm_config.json', confidence=0.75)
+        if anchor_saved is None:
+            print("Warning: could not detect reference icon to save anchor coordinates.")
+
     # Startup alignment: drag map until reference icon is near saved coordinates
     alignment_ok = align_screen_to_reference_icon(config_path='config/ipm_config.json', tolerance_px=30, max_attempts=8)
     if not alignment_ok:
@@ -141,8 +145,8 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Could not reposition mouse before zoom: {e}")
 
-    # Continue with zooming
-    zoom_to_max_then_down_one()
+    # After max-zoom alignment, zoom out to the configured working level.
+    zoom_out_configured_amount()
 
     # Currency monitor region from config bounds
     currency_region = get_grid_region(currency_region_start_grid, currency_region_end_grid)
@@ -188,9 +192,9 @@ if __name__ == "__main__":
                 debug_dir=debug_dir_name,
             )
             if currency is not None:
-                print(f"Current currency: ${currency}")
+                print(f"Cash: ${currency}")
             else:
-                print("Current currency: not detected")
+                print("Cash: not detected")
             next_check = now + 5
 
         time.sleep(0.1)

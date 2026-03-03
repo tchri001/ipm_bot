@@ -50,9 +50,28 @@ def _resolve_local_path(path_value):
 def _find_template_match(template_path, search_region=None, confidence=0.75):
     """Find a template and return center/score details or None if not found."""
     try:
+        if search_region is None:
+            region_details = 'full_screen'
+        else:
+            rx, ry, rw, rh = search_region
+            region_details = f'x={int(rx)};y={int(ry)};w={int(rw)};h={int(rh)}'
+
+        log_input_event(
+            'image_search',
+            '',
+            '',
+            f'template={template_path};region={region_details};confidence={float(confidence):.3f};status=start'
+        )
+
         template_full_path = _resolve_local_path(template_path)
         template_img = cv2.imread(template_full_path, cv2.IMREAD_GRAYSCALE)
         if template_img is None:
+            log_input_event(
+                'image_search',
+                '',
+                '',
+                f'template={template_path};region={region_details};confidence={float(confidence):.3f};status=template_missing'
+            )
             return None
 
         screenshot = pyautogui.screenshot(region=search_region)
@@ -62,6 +81,12 @@ def _find_template_match(template_path, search_region=None, confidence=0.75):
         result = cv2.matchTemplate(screenshot_gray, template_img, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, max_loc = cv2.minMaxLoc(result)
         if max_val < confidence:
+            log_input_event(
+                'image_search',
+                '',
+                '',
+                f'template={template_path};region={region_details};confidence={float(confidence):.3f};status=not_found;score={float(max_val):.4f}'
+            )
             return None
 
         template_h, template_w = template_img.shape
@@ -73,6 +98,16 @@ def _find_template_match(template_path, search_region=None, confidence=0.75):
             center_x += region_x
             center_y += region_y
 
+        log_input_event(
+            'image_search',
+            '',
+            '',
+            (
+                f'template={template_path};region={region_details};confidence={float(confidence):.3f};'
+                f'status=found;score={float(max_val):.4f};center_x={int(center_x)};center_y={int(center_y)}'
+            )
+        )
+
         return {
             'center_x': int(center_x),
             'center_y': int(center_y),
@@ -80,8 +115,23 @@ def _find_template_match(template_path, search_region=None, confidence=0.75):
             'template_w': int(template_w),
             'template_h': int(template_h),
         }
-    except Exception:
+    except Exception as e:
+        log_input_event(
+            'image_search',
+            '',
+            '',
+            f'template={template_path};confidence={float(confidence):.3f};status=error;error={e}'
+        )
         return None
+
+
+def find_template_match(template_path, search_region=None, confidence=0.75):
+    """Public wrapper for template matching with shared logging behavior."""
+    return _find_template_match(
+        template_path=template_path,
+        search_region=search_region,
+        confidence=confidence,
+    )
 
 
 def set_zoom_modifier_key(key_name):
@@ -475,6 +525,7 @@ def align_screen_to_reference_icon(config_path='config/ipm_config.json', toleran
                 step_dy = 1 if dy > 0 else -1
 
             pyautogui.moveTo(current_x, current_y, duration=0.12)
+            log_input_event('mouse_move', '', '', f'x={current_x};y={current_y};phase=alignment_drag_start;attempt={attempt}')
 
             # Break movement into moderate chunks: long enough to register, short enough to avoid inertia.
             chunk_count = max(1, max(abs(step_dx) // 45, abs(step_dy) // 45))
@@ -759,6 +810,94 @@ def get_grid_region(
     except Exception as e:
         print(f"Error building grid region: {e}")
         return None
+
+
+def open_resources_interface(
+    interface_search_start='M17',
+    interface_search_end='V17',
+    verify_search_start='S8',
+    verify_search_end='V9',
+    closed_icon_template='config/icons/tabs/resources_icon_closed.png',
+    resource_window_template='config/icons/tabs/resource_window.png',
+    click_confidence=0.75,
+    verify_confidence=0.75,
+    window_height_trim_ratio=0.2,
+):
+    """
+    Open the Resources interface by clicking the closed icon in the taskbar region,
+    then verify the resource window appears in the verification region.
+    """
+    log_input_event(
+        'interface_check',
+        '',
+        '',
+        (
+            f'name=resources;icon_template={closed_icon_template};window_template={resource_window_template};'
+            f'icon_region={interface_search_start}-{interface_search_end};verify_region={verify_search_start}-{verify_search_end}'
+        )
+    )
+
+    interface_region = get_grid_region(interface_search_start, interface_search_end)
+    if interface_region is None:
+        print("Could not resolve interface search region for resources icon")
+        return False
+
+    closed_match = _find_template_match(
+        template_path=closed_icon_template,
+        search_region=interface_region,
+        confidence=float(click_confidence),
+    )
+
+    verify_region = get_grid_region(verify_search_start, verify_search_end)
+    if verify_region is None:
+        print("Could not resolve verification region for resources window")
+        return False
+
+    vx, vy, vw, vh = verify_region
+    trim = max(0, int(vh * float(window_height_trim_ratio)))
+    trimmed_verify_region = (vx, vy + trim, vw, max(1, vh - (trim * 2)))
+
+    if closed_match is None:
+        existing_window = _find_template_match(
+            template_path=resource_window_template,
+            search_region=trimmed_verify_region,
+            confidence=float(verify_confidence),
+        )
+        if existing_window is not None:
+            print(
+                "Resources interface appears already open "
+                f"(score={existing_window['score']:.3f})"
+            )
+            return True
+
+        print("resources_icon_closed not found in taskbar region")
+        return False
+
+    click_x = int(closed_match['center_x'])
+    click_y = int(closed_match['center_y'])
+    pyautogui.moveTo(click_x, click_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={click_x};y={click_y};target=resources_icon_closed')
+    pyautogui.click(click_x, click_y)
+    log_input_event('mouse_click', '', '', f'x={click_x};y={click_y};button=left;target=resources_icon_closed')
+    time.sleep(0.35)
+
+    verified_window = _find_template_match(
+        template_path=resource_window_template,
+        search_region=trimmed_verify_region,
+        confidence=float(verify_confidence),
+    )
+    if verified_window is not None:
+        print("resources tab opened, window confirmed")
+        log_input_event(
+            'interface_check',
+            '',
+            '',
+            f'name=resources;status=opened_confirmed;score={float(verified_window["score"]):.4f}'
+        )
+        return True
+
+    print("Clicked resources icon but could not verify resource window")
+    return False
 
 
 def open_bluestacks():

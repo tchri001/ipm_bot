@@ -9,6 +9,7 @@ from utils import (
     open_bluestacks,
     zoom_to_max,
     zoom_out_configured_amount,
+    open_resources_interface,
     get_currency_value_with_visualization,
     get_grid_midpoint,
     get_grid_region,
@@ -36,6 +37,60 @@ def start_keypress_logger(log_path):
             pass
 
     return keyboard.hook(_on_key_event)
+
+
+def open_resources_tab():
+    """Open and verify the resources tab."""
+    resources_open = open_resources_interface(
+        interface_search_start='M17',
+        interface_search_end='V17',
+        verify_search_start='S8',
+        verify_search_end='V9',
+        closed_icon_template='config/icons/tabs/resources_icon_closed.png',
+        resource_window_template='config/icons/tabs/resource_window.png',
+        click_confidence=0.75,
+        verify_confidence=0.75,
+        window_height_trim_ratio=0.2,
+    )
+    if resources_open:
+        print("Resources interface check passed")
+    else:
+        print("Warning: resources interface check failed")
+    return resources_open
+
+
+def run_gameplay_loop(currency_region, debug_dir_name, key_log_hook):
+    """
+    Gameplay logic starts here.
+    Setup/calibration should be completed before calling this function.
+    """
+    open_resources_tab()
+
+    print(f"\nMonitoring currency every 5 seconds in region: {currency_region}")
+    print("Press 'q' to exit.")
+    print("Saving OCR crops to bot_v2/currency_screenshots")
+
+    next_check = 0.0
+    while True:
+        if keyboard.is_pressed('q'):
+            print("Exiting program...")
+            keyboard.unhook(key_log_hook)
+            os._exit(0)
+
+        now = time.time()
+        if now >= next_check:
+            currency = get_currency_value_with_visualization(
+                region=currency_region,
+                display=False,
+                debug_dir=debug_dir_name,
+            )
+            if currency is not None:
+                print(f"Cash: ${currency}")
+            else:
+                print("Cash: not detected")
+            next_check = now + 5
+
+        time.sleep(0.1)
 
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -103,11 +158,11 @@ if __name__ == "__main__":
         try:
             pyautogui.moveTo(x, y, duration=0.2)
             print(f"Moved mouse to {grid_target} (x={x}, y={y})")
-            log_input_event('mouse_move', '', '', f'x={x};y={y}')
+            log_input_event('mouse_move', '', '', f'x={x};y={y};phase=pre_zoom_initial_focus')
             if enable_focus_click:
                 pyautogui.click()
                 print("Clicked to focus window before zoom")
-                log_input_event('mouse_click', '', '', f'x={x};y={y};button=left')
+                log_input_event('mouse_click', '', '', f'x={x};y={y};button=left;phase=pre_zoom_initial_focus')
             else:
                 print("Focus click disabled (enable_focus_click=False)")
         except Exception as e:
@@ -173,28 +228,8 @@ if __name__ == "__main__":
         except OSError as e:
             print(f"Warning: could not remove {entry.path}: {e}")
 
-    print(f"\nMonitoring currency every 5 seconds in region: {currency_region}")
-    print("Press 'q' to exit.")
-    print("Saving OCR crops to bot_v2/currency_screenshots")
-
-    next_check = 0.0
-    while True:
-        if keyboard.is_pressed('q'):
-            print("Exiting program...")
-            keyboard.unhook(key_log_hook)
-            os._exit(0)
-
-        now = time.time()
-        if now >= next_check:
-            currency = get_currency_value_with_visualization(
-                region=currency_region,
-                display=False,
-                debug_dir=debug_dir_name,
-            )
-            if currency is not None:
-                print(f"Cash: ${currency}")
-            else:
-                print("Cash: not detected")
-            next_check = now + 5
-
-        time.sleep(0.1)
+    run_gameplay_loop(
+        currency_region=currency_region,
+        debug_dir_name=debug_dir_name,
+        key_log_hook=key_log_hook,
+    )

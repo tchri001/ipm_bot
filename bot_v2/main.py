@@ -10,6 +10,7 @@ from utils import (
     zoom_to_max,
     zoom_out_configured_amount,
     open_resources_interface,
+    find_template_match,
     get_currency_value_with_visualization,
     get_grid_midpoint,
     get_grid_region,
@@ -59,16 +60,454 @@ def open_resources_tab():
     return resources_open
 
 
+def unlock_planet(
+    start_search_cell,
+    end_search_cell,
+    planet,
+    vertical_trim_ratio=0,
+    horizontal_trim_ratio=0,
+):
+    planet_code = str(planet).strip().lower()
+    template_path = f'config/icons/planets/locked/{planet_code}.png'
+
+    search_region = get_grid_region(start_search_cell, end_search_cell)
+    if search_region is None:
+        print(f"Could not resolve planet search region: {start_search_cell} to {end_search_cell}")
+        log_input_event(
+            'planet_search',
+            '',
+            '',
+            (
+                f'planet={planet_code};template={template_path};region={start_search_cell}-{end_search_cell};'
+                'status=region_error'
+            )
+        )
+        return None
+
+    x, y, width, height = search_region
+    vertical_percent = max(0.0, min(49.0, float(vertical_trim_ratio)))
+    horizontal_percent = max(0.0, min(49.0, float(horizontal_trim_ratio)))
+
+    trim_y = int(height * (vertical_percent / 100.0))
+    trim_x = int(width * (horizontal_percent / 100.0))
+    trimmed_region = (
+        x + trim_x,
+        y + trim_y,
+        max(1, width - (trim_x * 2)),
+        max(1, height - (trim_y * 2)),
+    )
+
+    log_input_event(
+        'planet_search',
+        '',
+        '',
+        (
+            f'planet={planet_code};template={template_path};region={start_search_cell}-{end_search_cell};'
+            f'raw_region=x={x};y={y};w={width};h={height};'
+            f'trimmed_region=x={trimmed_region[0]};y={trimmed_region[1]};w={trimmed_region[2]};h={trimmed_region[3]};'
+            f'vertical_trim_percent={vertical_percent:.2f};horizontal_trim_percent={horizontal_percent:.2f};status=start'
+        )
+    )
+    print(
+        f"Searching for {planet_code} in {start_search_cell}-{end_search_cell} "
+        f"with trim v={vertical_percent:.2f}% h={horizontal_percent:.2f}%"
+    )
+
+    detection = find_template_match(
+        template_path=template_path,
+        search_region=trimmed_region,
+        confidence=0.75,
+    )
+
+    if detection is None:
+        log_input_event(
+            'planet_search',
+            '',
+            '',
+            (
+                f'planet={planet_code};template={template_path};region={start_search_cell}-{end_search_cell};'
+                'status=not_found'
+            )
+        )
+        print(f"Planet icon not found: {planet_code}")
+        return None
+
+    center_x = int(detection['center_x'])
+    center_y = int(detection['center_y'])
+    log_input_event(
+        'planet_search',
+        '',
+        '',
+        (
+            f'planet={planet_code};template={template_path};region={start_search_cell}-{end_search_cell};'
+            f'status=found;score={float(detection["score"]):.4f};center_x={center_x};center_y={center_y}'
+        )
+    )
+
+    pyautogui.moveTo(center_x, center_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={center_x};y={center_y};target={planet_code};phase=unlock_planet')
+    pyautogui.click(center_x, center_y)
+    log_input_event('mouse_click', '', '', f'x={center_x};y={center_y};button=left;target={planet_code};phase=unlock_planet')
+
+    unlocked_template_path = f'config/icons/planets/unlocked/{planet_code}.png'
+    time.sleep(0.25)
+    unlocked_detection = find_template_match(
+        template_path=unlocked_template_path,
+        search_region=trimmed_region,
+        confidence=0.75,
+    )
+
+    if unlocked_detection is not None:
+        log_input_event(
+            'planet_search',
+            '',
+            '',
+            (
+                f'planet={planet_code};template={unlocked_template_path};region={start_search_cell}-{end_search_cell};'
+                f'status=unlocked_found;score={float(unlocked_detection["score"]):.4f};'
+                f'center_x={int(unlocked_detection["center_x"])};center_y={int(unlocked_detection["center_y"])}'
+            )
+        )
+        print(f"Found unlocked planet icon for {planet_code}")
+
+        close_tab_region = get_grid_region('S6', 'V6')
+        close_tab_template_path = 'config/icons/planets/stats/planet_tab.png'
+        if close_tab_region is None:
+            log_input_event(
+                'planet_search',
+                '',
+                '',
+                f'planet={planet_code};template={close_tab_template_path};status=close_tab_region_error;region=S6-V6'
+            )
+            print("Could not resolve close tab region S6-V6")
+        else:
+            close_tab_detection = find_template_match(
+                template_path=close_tab_template_path,
+                search_region=close_tab_region,
+                confidence=0.75,
+            )
+            if close_tab_detection is not None:
+                close_x = int(close_tab_detection['center_x'])
+                close_y = int(close_tab_detection['center_y'])
+                pyautogui.moveTo(close_x, close_y, duration=0.1)
+                log_input_event('mouse_move', '', '', f'x={close_x};y={close_y};target=planet_tab;phase=unlock_planet_close_tab')
+                pyautogui.click(close_x, close_y)
+                log_input_event('mouse_click', '', '', f'x={close_x};y={close_y};button=left;target=planet_tab;phase=unlock_planet_close_tab')
+                log_input_event(
+                    'planet_search',
+                    '',
+                    '',
+                    f'planet={planet_code};template={close_tab_template_path};status=planet_tab_closed;center_x={close_x};center_y={close_y}'
+                )
+                print(f"Closed planet tab for {planet_code}")
+            else:
+                log_input_event(
+                    'planet_search',
+                    '',
+                    '',
+                    f'planet={planet_code};template={close_tab_template_path};status=planet_tab_not_found;region=S6-V6'
+                )
+                print(f"Could not find planet tab close icon for {planet_code}")
+    else:
+        log_input_event(
+            'planet_search',
+            '',
+            '',
+            (
+                f'planet={planet_code};template={unlocked_template_path};region={start_search_cell}-{end_search_cell};'
+                'status=unlocked_not_found'
+            )
+        )
+        print(f"Unlocked planet icon not found for {planet_code}")
+
+    print(f"Clicked locked planet icon for {planet_code} at (x={center_x}, y={center_y})")
+    return detection
+
+
+def sell_ores(ore_name):
+    ore_code = str(ore_name).strip().lower()
+    template_path = f'config/icons/ores/{ore_code}.png'
+
+    resources_open = open_resources_tab()
+    if not resources_open:
+        log_input_event(
+            'ore_sell',
+            '',
+            '',
+            f'ore={ore_code};template={template_path};status=resources_tab_not_open'
+        )
+        print(f"Could not open resources tab for ore sell: {ore_code}")
+        return None
+
+    ore_search_region = get_grid_region('M10', 'P15')
+    if ore_search_region is None:
+        log_input_event(
+            'ore_sell',
+            '',
+            '',
+            f'ore={ore_code};template={template_path};status=region_error;region=M10-P15'
+        )
+        print(f"Could not resolve ore search region for {ore_code}")
+        return None
+
+    log_input_event(
+        'ore_sell',
+        '',
+        '',
+        f'ore={ore_code};template={template_path};status=start;region=M10-P15'
+    )
+    detection = find_template_match(
+        template_path=template_path,
+        search_region=ore_search_region,
+        confidence=0.75,
+    )
+
+    if detection is None:
+        log_input_event(
+            'ore_sell',
+            '',
+            '',
+            f'ore={ore_code};template={template_path};status=not_found;region=M10-P15'
+        )
+        print(f"Ore icon not found: {ore_code}")
+        return None
+
+    center_x = int(detection['center_x'])
+    center_y = int(detection['center_y'])
+    pyautogui.moveTo(center_x, center_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={center_x};y={center_y};target={ore_code};phase=sell_ores')
+
+    pyautogui.mouseDown(x=center_x, y=center_y, button='left')
+    log_input_event('mouse_down', '', '', f'x={center_x};y={center_y};button=left;target={ore_code};phase=sell_ores')
+    time.sleep(1.5)
+    pyautogui.mouseUp(x=center_x, y=center_y, button='left')
+    log_input_event('mouse_up', '', '', f'x={center_x};y={center_y};button=left;target={ore_code};phase=sell_ores')
+
+    autosell_region = get_grid_region('M15', 'P16')
+    autosell_template_path = 'config/icons/ores/autosell.png'
+    if autosell_region is None:
+        log_input_event(
+            'ore_sell',
+            '',
+            '',
+            f'ore={ore_code};template={autosell_template_path};status=autosell_region_error;region=M15-P16'
+        )
+    else:
+        autosell_detection = find_template_match(
+            template_path=autosell_template_path,
+            search_region=autosell_region,
+            confidence=0.75,
+        )
+        if autosell_detection is not None:
+            log_input_event(
+                'ore_sell',
+                '',
+                '',
+                (
+                    f'ore={ore_code};template={autosell_template_path};status=autosell_confirmed;'
+                    f'score={float(autosell_detection["score"]):.4f};'
+                    f'center_x={int(autosell_detection["center_x"])};center_y={int(autosell_detection["center_y"])}'
+                )
+            )
+            if ore_code == 'copper':
+                print("Confirmed copper is autoselling")
+            else:
+                print(f"Confirmed {ore_code} is autoselling")
+        else:
+            log_input_event(
+                'ore_sell',
+                '',
+                '',
+                f'ore={ore_code};template={autosell_template_path};status=autosell_not_found;region=M15-P16'
+            )
+            print(f"Autosell icon not found for {ore_code}")
+
+    log_input_event(
+        'ore_sell',
+        '',
+        '',
+        (
+            f'ore={ore_code};template={template_path};status=hold_click_complete;'
+            f'center_x={center_x};center_y={center_y};hold_seconds=1.5'
+        )
+    )
+
+    close_tab_region = get_grid_region('M17', 'V17')
+    close_tab_template_path = 'config/icons/tabs/resources_icon_open.png'
+    if close_tab_region is None:
+        log_input_event(
+            'ore_sell',
+            '',
+            '',
+            f'ore={ore_code};template={close_tab_template_path};status=close_tab_region_error;region=M17-V17'
+        )
+    else:
+        close_tab_detection = find_template_match(
+            template_path=close_tab_template_path,
+            search_region=close_tab_region,
+            confidence=0.75,
+        )
+        if close_tab_detection is not None:
+            close_x = int(close_tab_detection['center_x'])
+            close_y = int(close_tab_detection['center_y'])
+            pyautogui.moveTo(close_x, close_y, duration=0.1)
+            log_input_event('mouse_move', '', '', f'x={close_x};y={close_y};target=resources_icon_open;phase=sell_ores_close_tab')
+            pyautogui.click(close_x, close_y)
+            log_input_event('mouse_click', '', '', f'x={close_x};y={close_y};button=left;target=resources_icon_open;phase=sell_ores_close_tab')
+            log_input_event(
+                'ore_sell',
+                '',
+                '',
+                (
+                    f'ore={ore_code};template={close_tab_template_path};status=resources_window_closed;'
+                    f'center_x={close_x};center_y={close_y}'
+                )
+            )
+            print("Resources window closed")
+        else:
+            log_input_event(
+                'ore_sell',
+                '',
+                '',
+                f'ore={ore_code};template={close_tab_template_path};status=resources_open_icon_not_found;region=M17-V17'
+            )
+            print("Could not find resources open icon to close tab")
+
+    print(f"Enabled auto-sell hold click for ore: {ore_code}")
+    return detection
+
+
+def stat_upgrade(planet, stat):
+    planet_code = str(planet).strip().lower()
+    stat_code = str(stat).strip().lower()
+    valid_stats = {'mining_rate', 'ship_speed', 'cargo'}
+
+    if stat_code not in valid_stats:
+        message = f"invalid stat: {stat_code}"
+        print(message)
+        log_input_event('stat_upgrade', '', '', message)
+        return False
+
+    start_message = f"upgrading planet {planet_code}, stat {stat_code}"
+    print(start_message)
+    log_input_event('stat_upgrade', '', '', start_message)
+
+    planet_template_path = f'config/icons/planets/unlocked/{planet_code}.png'
+    planet_search_message = f"searching for planet {planet_code}"
+    print(planet_search_message)
+    log_input_event('stat_upgrade', '', '', planet_search_message)
+    planet_detection = find_template_match(
+        template_path=planet_template_path,
+        search_region=None,
+        confidence=0.75,
+    )
+    if planet_detection is None:
+        not_found_message = f"planet not found: {planet_code}"
+        print(not_found_message)
+        log_input_event('stat_upgrade', '', '', not_found_message)
+        return False
+
+    found_open_message = f"searching for planet {planet_code}, found planet {planet_code}, opening planet {planet_code}"
+    print(found_open_message)
+    log_input_event('stat_upgrade', '', '', found_open_message)
+    planet_x = int(planet_detection['center_x'])
+    planet_y = int(planet_detection['center_y'])
+    pyautogui.moveTo(planet_x, planet_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={planet_x};y={planet_y};target={planet_code};phase=stat_upgrade_open_planet')
+    pyautogui.click(planet_x, planet_y)
+    log_input_event('mouse_click', '', '', f'x={planet_x};y={planet_y};button=left;target={planet_code};phase=stat_upgrade_open_planet')
+    time.sleep(0.2)
+
+    stat_template_path = f'config/icons/planets/stats/{stat_code}.png'
+    stat_region = get_grid_region('N12', 'Q18')
+    if stat_region is None:
+        region_error_message = "could not resolve stat search region N12-Q18"
+        print(region_error_message)
+        log_input_event('stat_upgrade', '', '', region_error_message)
+        return False
+
+    stat_search_message = f"searching for stat {stat_code}"
+    print(stat_search_message)
+    log_input_event('stat_upgrade', '', '', stat_search_message)
+    stat_detection = find_template_match(
+        template_path=stat_template_path,
+        search_region=stat_region,
+        confidence=0.75,
+    )
+    if stat_detection is None:
+        stat_not_found_message = f"stat not found: {stat_code}"
+        print(stat_not_found_message)
+        log_input_event('stat_upgrade', '', '', stat_not_found_message)
+        return False
+
+    stat_found_move_message = f"searching for stat {stat_code}, found stat {stat_code}, moving right 400px, moving down 100px"
+    print(stat_found_move_message)
+    log_input_event('stat_upgrade', '', '', stat_found_move_message)
+    upgrade_x = int(stat_detection['center_x']) + 400
+    upgrade_y = int(stat_detection['center_y']) + 60
+    pyautogui.moveTo(upgrade_x, upgrade_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={upgrade_x};y={upgrade_y};target={stat_code};phase=stat_upgrade_click_offset')
+    pyautogui.click(upgrade_x, upgrade_y)
+    log_input_event('mouse_click', '', '', f'x={upgrade_x};y={upgrade_y};button=left;target={stat_code};phase=stat_upgrade_click_offset')
+
+    click_complete_message = "clicking 1 time, upgrade complete"
+    print(click_complete_message)
+    log_input_event('stat_upgrade', '', '', click_complete_message)
+
+    close_message = "closing planet tab"
+    print(close_message)
+    log_input_event('stat_upgrade', '', '', close_message)
+    close_tab_region = get_grid_region('S6', 'V6')
+    close_tab_template_path = 'config/icons/planets/stats/planet_tab.png'
+    if close_tab_region is None:
+        close_region_error = "could not resolve close tab region S6-V6"
+        print(close_region_error)
+        log_input_event('stat_upgrade', '', '', close_region_error)
+        return False
+
+    close_tab_detection = find_template_match(
+        template_path=close_tab_template_path,
+        search_region=close_tab_region,
+        confidence=0.75,
+    )
+    if close_tab_detection is None:
+        close_not_found = "planet tab close icon not found"
+        print(close_not_found)
+        log_input_event('stat_upgrade', '', '', close_not_found)
+        return False
+
+    close_x = int(close_tab_detection['center_x'])
+    close_y = int(close_tab_detection['center_y'])
+    pyautogui.moveTo(close_x, close_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={close_x};y={close_y};target=planet_tab;phase=stat_upgrade_close_tab')
+    pyautogui.click(close_x, close_y)
+    log_input_event('mouse_click', '', '', f'x={close_x};y={close_y};button=left;target=planet_tab;phase=stat_upgrade_close_tab')
+    return True
+
+
 def run_gameplay_loop(currency_region, debug_dir_name, key_log_hook):
     """
     Gameplay logic starts here.
     Setup/calibration should be completed before calling this function.
     """
-    open_resources_tab()
+    #unlock_planet("Q8","Q9","p1",20,0)
+    #sell_ores("copper")
+    #unlock_planet("R8","R8","p2",0,0)
+    #sell_ores("iron")
+    #open_resources_tab()
+    #unlock_planet("R10","S11","p3",10,10)
+    #unlock_planet("P11","Q11","p4",0,10)
+    #sell_ores("lead")
+
+    planets = ["p1", "p2", "p3", "p4"]
+    for planet in planets:
+        stat_upgrade(planet, "mining_rate")
+        stat_upgrade(planet, "ship_speed")
+        stat_upgrade(planet, "cargo")
 
     print(f"\nMonitoring currency every 5 seconds in region: {currency_region}")
     print("Press 'q' to exit.")
-    print("Saving OCR crops to bot_v2/currency_screenshots")
+    print("Saving OCR crops to bot_v2/search_screenshots")
 
     next_check = 0.0
     while True:
@@ -215,7 +654,7 @@ if __name__ == "__main__":
     currency_region = (rx, ry + 50, rw, max(1, rh - 100))
 
     # Clear debug screenshot folder at startup (safer on Windows/OneDrive)
-    debug_dir_name = 'currency_screenshots'
+    debug_dir_name = 'search_screenshots'
     debug_dir_path = os.path.join(base_dir, debug_dir_name)
     os.makedirs(debug_dir_path, exist_ok=True)
 

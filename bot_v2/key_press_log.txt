@@ -1,252 +1,195 @@
 timestamp,event,key,scan_code,details
-2026-03-03 14:59:44.039232,mouse_move,,,x=1950;y=850;phase=pre_zoom_initial_focus
-2026-03-03 14:59:44.167423,mouse_click,,,x=1950;y=850;button=left;phase=pre_zoom_initial_focus
-2026-03-03 14:59:46.170976,down,left ctrl,-162,keyboard_hook
-2026-03-03 14:59:46.773918,mouse_scroll,,,amount=100;zoom_in_iter=1
-2026-03-03 14:59:46.982895,mouse_scroll,,,amount=100;zoom_in_iter=2
-2026-03-03 14:59:47.187756,mouse_scroll,,,amount=100;zoom_in_iter=3
-2026-03-03 14:59:47.389377,mouse_scroll,,,amount=100;zoom_in_iter=4
-2026-03-03 14:59:47.591072,mouse_scroll,,,amount=100;zoom_in_iter=5
-2026-03-03 14:59:47.693513,up,left ctrl,-162,keyboard_hook
-2026-03-03 14:59:48.297538,image_search,,,template=config/ref_ship.png;region=full_screen;confidence=0.750;status=start
-2026-03-03 14:59:48.489690,image_search,,,template=config/ref_ship.png;region=full_screen;confidence=0.750;status=found;score=0.9608;center_x=1683;center_y=729
-2026-03-03 14:59:48.849496,mouse_move,,,x=1950;y=850;phase=pre_zoom_reposition
-2026-03-03 14:59:48.964536,mouse_click,,,x=1950;y=850;button=left;phase=pre_zoom_reposition
-2026-03-03 14:59:49.467628,down,left ctrl,-162,keyboard_hook
-2026-03-03 14:59:50.070596,mouse_scroll,,,amount=-35;zoom_out_iter=1
-2026-03-03 14:59:50.272789,mouse_scroll,,,amount=-35;zoom_out_iter=2
-2026-03-03 14:59:50.474205,mouse_scroll,,,amount=-35;zoom_out_iter=3
-2026-03-03 14:59:50.676283,mouse_scroll,,,amount=-35;zoom_out_iter=4
-2026-03-03 14:59:50.879237,mouse_scroll,,,amount=-35;zoom_out_iter=5
-2026-03-03 14:59:50.980910,up,left ctrl,-162,keyboard_hook
-2026-03-03 14:59:51.575177,interface_check,,,name=resources;icon_template=config/icons/resources_icon_closed.png;window_template=config/icons/resource_window.png;icon_region=M17-V17;verify_region=S8-V9
-2026-03-03 14:59:51.576815,image_search,,,template=config/icons/resources_icon_closed.png;region=x=1200;y=1600;w=1000;h=100;confidence=0.750;status=start
-2026-03-03 14:59:51.648813,image_search,,,template=config/icons/resources_icon_closed.png;region=x=1200;y=1600;w=1000;h=100;confidence=0.750;status=found;score=0.9988;center_x=1317;center_y=1650
-2026-03-03 14:59:51.752708,mouse_move,,,x=1317;y=1650;target=resources_icon_closed
-2026-03-03 14:59:51.862563,mouse_click,,,x=1317;y=1650;button=left;target=resources_icon_closed
-2026-03-03 14:59:52.213909,image_search,,,template=config/icons/resource_window.png;region=x=1800;y=740;w=400;h=120;confidence=0.750;status=start
-2026-03-03 14:59:52.303235,image_search,,,template=config/icons/resource_window.png;region=x=1800;y=740;w=400;h=120;confidence=0.750;status=found;score=0.9546;center_x=1989;center_y=800
-2026-03-03 14:59:52.304229,interface_check,,,name=resources;status=opened_confirmed;score=0.9546
-2026-03-03 14:59:53.933695,down,q,16,keyboard_hook
-2026-03-03 14:59:54.075043,up,q,16,keyboard_hook
-2026-03-03 15:00:02.607155,down,2,3,keyboard_hook
-2026-03-03 15:00:02.762345,up,2,3,keyboard_hook
-2026-03-03 15:00:06.561155,down,f2,60,keyboard_hook
-2026-03-03 15:00:06.736712,up,f2,60,keyboard_hook
-2026-03-03 15:00:08.832643,down,esc,1,keyboard_hook
-2026-03-03 15:00:08.940239,up,esc,1,keyboard_hook
-2026-03-03 15:00:13.399687,down,t,20,keyboard_hook
-2026-03-03 15:00:13.413992,down,a,30,keyboard_hook
-2026-03-03 15:00:13.504299,up,t,20,keyboard_hook
-2026-03-03 15:00:13.575077,up,a,30,keyboard_hook
-2026-03-03 15:00:13.595605,down,b,48,keyboard_hook
-2026-03-03 15:00:13.718366,up,b,48,keyboard_hook
-2026-03-03 15:00:13.752657,down,s,31,keyboard_hook
-2026-03-03 15:00:13.871539,up,s,31,keyboard_hook
-2026-03-03 15:00:13.922599,down,enter,28,keyboard_hook
-2026-03-03 15:00:13.991203,up,enter,28,keyboard_hook
-2026-03-03 15:00:15.548580,down,shift,42,keyboard_hook
-2026-03-03 15:00:16.081395,down,shift,42,keyboard_hook
-2026-03-03 15:00:16.113511,down,shift,42,keyboard_hook
-2026-03-03 15:00:16.146169,down,shift,42,keyboard_hook
-2026-03-03 15:00:16.178306,down,shift,42,keyboard_hook
-2026-03-03 15:00:16.188629,up,shift,42,keyboard_hook
-2026-03-03 15:00:16.339035,down,ctrl,29,keyboard_hook
-2026-03-03 15:00:16.629455,down,x,45,keyboard_hook
-2026-03-03 15:00:16.748435,up,ctrl,29,keyboard_hook
-2026-03-03 15:00:16.795596,up,x,45,keyboard_hook
-2026-03-03 15:00:17.127089,down,ctrl,29,keyboard_hook
-2026-03-03 15:00:17.234001,down,v,47,keyboard_hook
-2026-03-03 15:00:17.383493,up,v,47,keyboard_hook
-2026-03-03 15:00:17.428020,up,ctrl,29,keyboard_hook
-2026-03-03 15:00:19.792572,down,shift,42,keyboard_hook
-2026-03-03 15:00:20.111693,down,I,23,keyboard_hook
-2026-03-03 15:00:20.274339,up,I,23,keyboard_hook
-2026-03-03 15:00:20.353669,up,shift,42,keyboard_hook
-2026-03-03 15:00:20.378820,down,space,57,keyboard_hook
-2026-03-03 15:00:20.502620,down,m,50,keyboard_hook
-2026-03-03 15:00:20.546538,up,space,57,keyboard_hook
-2026-03-03 15:00:20.606690,down,o,24,keyboard_hook
-2026-03-03 15:00:20.662654,up,m,50,keyboard_hook
-2026-03-03 15:00:20.663795,down,v,47,keyboard_hook
-2026-03-03 15:00:20.731430,down,e,18,keyboard_hook
-2026-03-03 15:00:20.751289,up,o,24,keyboard_hook
-2026-03-03 15:00:20.781407,up,v,47,keyboard_hook
-2026-03-03 15:00:20.858326,up,e,18,keyboard_hook
-2026-03-03 15:00:20.948516,down,d,32,keyboard_hook
-2026-03-03 15:00:21.056856,down,space,57,keyboard_hook
-2026-03-03 15:00:21.067812,up,d,32,keyboard_hook
-2026-03-03 15:00:21.140134,down,a,30,keyboard_hook
-2026-03-03 15:00:21.177700,up,space,57,keyboard_hook
-2026-03-03 15:00:21.215264,down,l,38,keyboard_hook
-2026-03-03 15:00:21.273597,up,a,30,keyboard_hook
-2026-03-03 15:00:21.289700,up,l,38,keyboard_hook
-2026-03-03 15:00:21.369947,down,l,38,keyboard_hook
-2026-03-03 15:00:21.431798,down,space,57,keyboard_hook
-2026-03-03 15:00:21.487966,up,l,38,keyboard_hook
-2026-03-03 15:00:21.494592,down,t,20,keyboard_hook
-2026-03-03 15:00:21.532726,up,space,57,keyboard_hook
-2026-03-03 15:00:21.578945,down,h,35,keyboard_hook
-2026-03-03 15:00:21.622016,up,t,20,keyboard_hook
-2026-03-03 15:00:21.655819,down,e,18,keyboard_hook
-2026-03-03 15:00:21.710497,up,h,35,keyboard_hook
-2026-03-03 15:00:21.745074,down,space,57,keyboard_hook
-2026-03-03 15:00:21.778148,up,e,18,keyboard_hook
-2026-03-03 15:00:21.884507,up,space,57,keyboard_hook
-2026-03-03 15:00:21.938727,down,i,23,keyboard_hook
-2026-03-03 15:00:22.019137,down,m,50,keyboard_hook
-2026-03-03 15:00:22.084472,up,i,23,keyboard_hook
-2026-03-03 15:00:22.094037,down,a,30,keyboard_hook
-2026-03-03 15:00:22.175694,up,m,50,keyboard_hook
-2026-03-03 15:00:22.177967,down,g,34,keyboard_hook
-2026-03-03 15:00:22.197027,up,a,30,keyboard_hook
-2026-03-03 15:00:22.222769,down,e,18,keyboard_hook
-2026-03-03 15:00:22.295006,up,g,34,keyboard_hook
-2026-03-03 15:00:22.352605,down,s,31,keyboard_hook
-2026-03-03 15:00:22.425920,up,e,18,keyboard_hook
-2026-03-03 15:00:22.460947,down,space,57,keyboard_hook
-2026-03-03 15:00:22.516612,up,s,31,keyboard_hook
-2026-03-03 15:00:22.554934,down,i,23,keyboard_hook
-2026-03-03 15:00:22.582812,up,space,57,keyboard_hook
-2026-03-03 15:00:22.663405,down,n,49,keyboard_hook
-2026-03-03 15:00:22.731007,up,i,23,keyboard_hook
-2026-03-03 15:00:22.737540,down,space,57,keyboard_hook
-2026-03-03 15:00:22.803605,up,n,49,keyboard_hook
-2026-03-03 15:00:22.828512,up,space,57,keyboard_hook
-2026-03-03 15:00:23.449529,down,c,46,keyboard_hook
-2026-03-03 15:00:23.526013,down,o,24,keyboard_hook
-2026-03-03 15:00:23.564531,up,c,46,keyboard_hook
-2026-03-03 15:00:23.601010,down,n,49,keyboard_hook
-2026-03-03 15:00:23.647440,up,o,24,keyboard_hook
-2026-03-03 15:00:23.658057,down,f,33,keyboard_hook
-2026-03-03 15:00:23.706352,up,n,49,keyboard_hook
-2026-03-03 15:00:23.740322,down,i,23,keyboard_hook
-2026-03-03 15:00:23.767383,up,f,33,keyboard_hook
-2026-03-03 15:00:23.832452,up,i,23,keyboard_hook
-2026-03-03 15:00:23.847488,down,g,34,keyboard_hook
-2026-03-03 15:00:23.929119,up,g,34,keyboard_hook
-2026-03-03 15:00:23.960408,down,/,53,keyboard_hook
-2026-03-03 15:00:24.055533,up,/,53,keyboard_hook
-2026-03-03 15:00:24.210878,down,i,23,keyboard_hook
-2026-03-03 15:00:24.306530,down,c,46,keyboard_hook
-2026-03-03 15:00:24.324576,up,i,23,keyboard_hook
-2026-03-03 15:00:24.404947,down,o,24,keyboard_hook
-2026-03-03 15:00:24.454081,up,c,46,keyboard_hook
-2026-03-03 15:00:24.483717,down,n,49,keyboard_hook
-2026-03-03 15:00:24.542564,up,o,24,keyboard_hook
-2026-03-03 15:00:24.583086,down,s,31,keyboard_hook
-2026-03-03 15:00:24.612238,up,n,49,keyboard_hook
-2026-03-03 15:00:24.719151,up,s,31,keyboard_hook
-2026-03-03 15:00:24.743876,down,space,57,keyboard_hook
-2026-03-03 15:00:24.877424,up,space,57,keyboard_hook
-2026-03-03 15:00:25.003238,down,t,20,keyboard_hook
-2026-03-03 15:00:25.036008,down,o,24,keyboard_hook
-2026-03-03 15:00:25.078697,up,t,20,keyboard_hook
-2026-03-03 15:00:25.132896,down,space,57,keyboard_hook
-2026-03-03 15:00:25.158496,up,o,24,keyboard_hook
-2026-03-03 15:00:25.262237,up,space,57,keyboard_hook
-2026-03-03 15:00:25.395103,down,c,46,keyboard_hook
-2026-03-03 15:00:25.464827,down,o,24,keyboard_hook
-2026-03-03 15:00:25.545193,up,c,46,keyboard_hook
-2026-03-03 15:00:25.555777,down,n,49,keyboard_hook
-2026-03-03 15:00:25.584670,up,o,24,keyboard_hook
-2026-03-03 15:00:25.638324,down,f,33,keyboard_hook
-2026-03-03 15:00:25.667744,up,n,49,keyboard_hook
-2026-03-03 15:00:25.743589,down,i,23,keyboard_hook
-2026-03-03 15:00:25.764281,up,f,33,keyboard_hook
-2026-03-03 15:00:25.830110,up,i,23,keyboard_hook
-2026-03-03 15:00:25.836641,down,g,34,keyboard_hook
-2026-03-03 15:00:25.944134,up,g,34,keyboard_hook
-2026-03-03 15:00:25.975010,down,/,53,keyboard_hook
-2026-03-03 15:00:26.075558,up,/,53,keyboard_hook
-2026-03-03 15:00:26.270847,down,i,23,keyboard_hook
-2026-03-03 15:00:26.404713,up,i,23,keyboard_hook
-2026-03-03 15:00:26.407190,down,c,46,keyboard_hook
-2026-03-03 15:00:26.525122,down,o,24,keyboard_hook
-2026-03-03 15:00:26.562825,up,c,46,keyboard_hook
-2026-03-03 15:00:26.619135,down,n,49,keyboard_hook
-2026-03-03 15:00:26.655399,up,o,24,keyboard_hook
-2026-03-03 15:00:26.718745,down,s,31,keyboard_hook
-2026-03-03 15:00:26.750808,up,n,49,keyboard_hook
-2026-03-03 15:00:26.837722,up,s,31,keyboard_hook
-2026-03-03 15:00:27.203557,down,/,53,keyboard_hook
-2026-03-03 15:00:27.347130,up,/,53,keyboard_hook
-2026-03-03 15:00:27.522837,down,t,20,keyboard_hook
-2026-03-03 15:00:27.605170,down,a,30,keyboard_hook
-2026-03-03 15:00:27.673202,up,t,20,keyboard_hook
-2026-03-03 15:00:27.727560,up,a,30,keyboard_hook
-2026-03-03 15:00:28.170246,down,b,48,keyboard_hook
-2026-03-03 15:00:28.262264,down,s,31,keyboard_hook
-2026-03-03 15:00:28.283234,up,b,48,keyboard_hook
-2026-03-03 15:00:28.406731,up,s,31,keyboard_hook
-2026-03-03 15:00:28.906420,down,shift,42,keyboard_hook
-2026-03-03 15:00:29.062204,down,enter,28,keyboard_hook
-2026-03-03 15:00:29.142173,up,enter,28,keyboard_hook
-2026-03-03 15:00:29.275049,down,C,46,keyboard_hook
-2026-03-03 15:00:29.421896,up,C,46,keyboard_hook
-2026-03-03 15:00:29.454211,up,shift,42,keyboard_hook
-2026-03-03 15:00:29.581836,down,a,30,keyboard_hook
-2026-03-03 15:00:29.668979,down,n,49,keyboard_hook
-2026-03-03 15:00:29.684054,up,a,30,keyboard_hook
-2026-03-03 15:00:29.746654,down,space,57,keyboard_hook
-2026-03-03 15:00:29.791631,up,n,49,keyboard_hook
-2026-03-03 15:00:29.795101,down,y,21,keyboard_hook
-2026-03-03 15:00:29.849395,up,space,57,keyboard_hook
-2026-03-03 15:00:29.852467,down,o,24,keyboard_hook
-2026-03-03 15:00:29.882682,up,y,21,keyboard_hook
-2026-03-03 15:00:29.983555,down,u,22,keyboard_hook
-2026-03-03 15:00:29.994560,down,space,57,keyboard_hook
-2026-03-03 15:00:30.015500,up,o,24,keyboard_hook
-2026-03-03 15:00:30.026349,up,u,22,keyboard_hook
-2026-03-03 15:00:30.110620,up,space,57,keyboard_hook
-2026-03-03 15:00:30.386669,down,u,22,keyboard_hook
-2026-03-03 15:00:30.438914,down,p,25,keyboard_hook
-2026-03-03 15:00:30.493544,up,u,22,keyboard_hook
-2026-03-03 15:00:30.614314,up,p,25,keyboard_hook
-2026-03-03 15:00:30.836000,down,d,32,keyboard_hook
-2026-03-03 15:00:30.942760,down,a,30,keyboard_hook
-2026-03-03 15:00:30.954521,up,d,32,keyboard_hook
-2026-03-03 15:00:31.059913,down,t,20,keyboard_hook
-2026-03-03 15:00:31.069907,up,a,30,keyboard_hook
-2026-03-03 15:00:31.125169,down,e,18,keyboard_hook
-2026-03-03 15:00:31.153026,up,t,20,keyboard_hook
-2026-03-03 15:00:31.226634,down,space,57,keyboard_hook
-2026-03-03 15:00:31.240971,up,e,18,keyboard_hook
-2026-03-03 15:00:31.313644,down,r,19,keyboard_hook
-2026-03-03 15:00:31.353652,up,space,57,keyboard_hook
-2026-03-03 15:00:31.396906,down,e,18,keyboard_hook
-2026-03-03 15:00:31.434271,up,r,19,keyboard_hook
-2026-03-03 15:00:31.526106,up,e,18,keyboard_hook
-2026-03-03 15:00:31.536699,down,f,33,keyboard_hook
-2026-03-03 15:00:31.632396,up,f,33,keyboard_hook
-2026-03-03 15:00:31.653816,down,e,18,keyboard_hook
-2026-03-03 15:00:31.734763,down,r,19,keyboard_hook
-2026-03-03 15:00:31.773607,up,e,18,keyboard_hook
-2026-03-03 15:00:31.858190,down,e,18,keyboard_hook
-2026-03-03 15:00:31.871249,up,r,19,keyboard_hook
-2026-03-03 15:00:31.949905,up,e,18,keyboard_hook
-2026-03-03 15:00:31.960095,down,n,49,keyboard_hook
-2026-03-03 15:00:32.030742,down,c,46,keyboard_hook
-2026-03-03 15:00:32.071780,up,n,49,keyboard_hook
-2026-03-03 15:00:32.101500,down,e,18,keyboard_hook
-2026-03-03 15:00:32.133590,up,c,46,keyboard_hook
-2026-03-03 15:00:32.185286,down,s,31,keyboard_hook
-2026-03-03 15:00:32.207497,up,e,18,keyboard_hook
-2026-03-03 15:00:32.208546,down,space,57,keyboard_hook
-2026-03-03 15:00:32.283653,down,p,25,keyboard_hook
-2026-03-03 15:00:32.307497,up,space,57,keyboard_hook
-2026-03-03 15:00:32.309262,up,s,31,keyboard_hook
-2026-03-03 15:00:32.377363,down,l,38,keyboard_hook
-2026-03-03 15:00:32.443739,down,e,18,keyboard_hook
-2026-03-03 15:00:32.471207,up,p,25,keyboard_hook
-2026-03-03 15:00:32.479795,down,a,30,keyboard_hook
-2026-03-03 15:00:32.512265,up,l,38,keyboard_hook
-2026-03-03 15:00:32.550708,up,e,18,keyboard_hook
-2026-03-03 15:00:32.618394,down,s,31,keyboard_hook
-2026-03-03 15:00:32.690072,up,a,30,keyboard_hook
-2026-03-03 15:00:32.693347,down,e,18,keyboard_hook
-2026-03-03 15:00:32.768659,up,s,31,keyboard_hook
-2026-03-03 15:00:32.855974,up,e,18,keyboard_hook
-2026-03-03 15:00:32.968855,down,enter,28,keyboard_hook
-2026-03-03 15:00:33.059192,up,enter,28,keyboard_hook
-2026-03-03 15:00:34.319441,down,q,16,keyboard_hook
+2026-03-03 16:30:22.738553,mouse_move,,,x=1950;y=850;phase=pre_zoom_initial_focus
+2026-03-03 16:30:22.848771,mouse_click,,,x=1950;y=850;button=left;phase=pre_zoom_initial_focus
+2026-03-03 16:30:24.850946,down,left ctrl,-162,keyboard_hook
+2026-03-03 16:30:25.453208,mouse_scroll,,,amount=100;zoom_in_iter=1
+2026-03-03 16:30:25.656284,mouse_scroll,,,amount=100;zoom_in_iter=2
+2026-03-03 16:30:25.859889,mouse_scroll,,,amount=100;zoom_in_iter=3
+2026-03-03 16:30:26.061274,mouse_scroll,,,amount=100;zoom_in_iter=4
+2026-03-03 16:30:26.262756,mouse_scroll,,,amount=100;zoom_in_iter=5
+2026-03-03 16:30:26.365042,up,left ctrl,-162,keyboard_hook
+2026-03-03 16:30:26.950270,image_search,,,template=config/ref_ship.png;region=full_screen;confidence=0.750;status=start
+2026-03-03 16:30:27.357805,image_search,,,template=config/ref_ship.png;region=full_screen;confidence=0.750;status=found;score=0.9373;center_x=1683;center_y=729
+2026-03-03 16:30:27.714986,mouse_move,,,x=1950;y=850;phase=pre_zoom_reposition
+2026-03-03 16:30:27.824337,mouse_click,,,x=1950;y=850;button=left;phase=pre_zoom_reposition
+2026-03-03 16:30:28.327053,down,left ctrl,-162,keyboard_hook
+2026-03-03 16:30:28.932590,mouse_scroll,,,amount=-35;zoom_out_iter=1
+2026-03-03 16:30:29.134895,mouse_scroll,,,amount=-35;zoom_out_iter=2
+2026-03-03 16:30:29.337691,mouse_scroll,,,amount=-35;zoom_out_iter=3
+2026-03-03 16:30:29.540167,mouse_scroll,,,amount=-35;zoom_out_iter=4
+2026-03-03 16:30:29.743594,mouse_scroll,,,amount=-35;zoom_out_iter=5
+2026-03-03 16:30:29.847882,up,left ctrl,-162,keyboard_hook
+2026-03-03 16:30:30.446646,stat_upgrade,,,upgrading planet p2; stat mining_rate
+2026-03-03 16:30:30.447302,stat_upgrade,,,searching for planet p2
+2026-03-03 16:30:30.447601,image_search,,,template=config/icons/planets/unlocked/p2.png;region=full_screen;confidence=0.750;status=start
+2026-03-03 16:30:30.805002,image_search,,,template=config/icons/planets/unlocked/p2.png;region=full_screen;confidence=0.750;status=found;score=0.9326;center_x=1745;center_y=749
+2026-03-03 16:30:30.809580,stat_upgrade,,,searching for planet p2; found planet p2; opening planet p2
+2026-03-03 16:30:30.910702,mouse_move,,,x=1745;y=749;target=p2;phase=stat_upgrade_open_planet
+2026-03-03 16:30:31.023967,mouse_click,,,x=1745;y=749;button=left;target=p2;phase=stat_upgrade_open_planet
+2026-03-03 16:30:31.227645,stat_upgrade,,,searching for stat mining_rate
+2026-03-03 16:30:31.229635,image_search,,,template=config/icons/planets/stats/mining_rate.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=start
+2026-03-03 16:30:31.323733,image_search,,,template=config/icons/planets/stats/mining_rate.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=found;score=0.9999;center_x=1553;center_y=1174
+2026-03-03 16:30:31.324661,stat_upgrade,,,searching for stat mining_rate; found stat mining_rate; moving right 400px; moving down 100px
+2026-03-03 16:30:31.425729,mouse_move,,,x=1953;y=1274;target=mining_rate;phase=stat_upgrade_click_offset
+2026-03-03 16:30:31.532433,mouse_click,,,x=1953;y=1274;button=left;target=mining_rate;phase=stat_upgrade_click_offset
+2026-03-03 16:30:31.535165,stat_upgrade,,,clicking 1 time; upgrade complete
+2026-03-03 16:30:31.539316,stat_upgrade,,,closing planet tab
+2026-03-03 16:30:31.548246,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=start
+2026-03-03 16:30:31.620022,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=found;score=0.9759;center_x=1984;center_y=548
+2026-03-03 16:30:31.720918,mouse_move,,,x=1984;y=548;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:31.830339,mouse_click,,,x=1984;y=548;button=left;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:31.831871,stat_upgrade,,,upgrading planet p2; stat ship_speed
+2026-03-03 16:30:31.832987,stat_upgrade,,,searching for planet p2
+2026-03-03 16:30:31.833853,image_search,,,template=config/icons/planets/unlocked/p2.png;region=full_screen;confidence=0.750;status=start
+2026-03-03 16:30:32.195363,image_search,,,template=config/icons/planets/unlocked/p2.png;region=full_screen;confidence=0.750;status=found;score=0.8902;center_x=1745;center_y=749
+2026-03-03 16:30:32.199869,stat_upgrade,,,searching for planet p2; found planet p2; opening planet p2
+2026-03-03 16:30:32.300941,mouse_move,,,x=1745;y=749;target=p2;phase=stat_upgrade_open_planet
+2026-03-03 16:30:32.405332,mouse_click,,,x=1745;y=749;button=left;target=p2;phase=stat_upgrade_open_planet
+2026-03-03 16:30:32.710615,stat_upgrade,,,searching for stat ship_speed
+2026-03-03 16:30:32.711777,image_search,,,template=config/icons/planets/stats/ship_speed.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=start
+2026-03-03 16:30:32.811901,image_search,,,template=config/icons/planets/stats/ship_speed.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=found;score=0.9463;center_x=1541;center_y=1318
+2026-03-03 16:30:32.813153,stat_upgrade,,,searching for stat ship_speed; found stat ship_speed; moving right 400px; moving down 100px
+2026-03-03 16:30:32.914174,mouse_move,,,x=1941;y=1418;target=ship_speed;phase=stat_upgrade_click_offset
+2026-03-03 16:30:33.023290,mouse_click,,,x=1941;y=1418;button=left;target=ship_speed;phase=stat_upgrade_click_offset
+2026-03-03 16:30:33.024075,stat_upgrade,,,clicking 1 time; upgrade complete
+2026-03-03 16:30:33.024517,stat_upgrade,,,closing planet tab
+2026-03-03 16:30:33.026017,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=start
+2026-03-03 16:30:33.091819,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=found;score=0.9759;center_x=1984;center_y=548
+2026-03-03 16:30:33.192625,mouse_move,,,x=1984;y=548;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:33.294868,mouse_click,,,x=1984;y=548;button=left;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:33.301161,stat_upgrade,,,upgrading planet p2; stat cargo
+2026-03-03 16:30:33.302918,stat_upgrade,,,searching for planet p2
+2026-03-03 16:30:33.304906,image_search,,,template=config/icons/planets/unlocked/p2.png;region=full_screen;confidence=0.750;status=start
+2026-03-03 16:30:33.691061,image_search,,,template=config/icons/planets/unlocked/p2.png;region=full_screen;confidence=0.750;status=found;score=0.9369;center_x=1745;center_y=749
+2026-03-03 16:30:33.702289,stat_upgrade,,,searching for planet p2; found planet p2; opening planet p2
+2026-03-03 16:30:33.804010,mouse_move,,,x=1745;y=749;target=p2;phase=stat_upgrade_open_planet
+2026-03-03 16:30:33.906170,mouse_click,,,x=1745;y=749;button=left;target=p2;phase=stat_upgrade_open_planet
+2026-03-03 16:30:34.109801,stat_upgrade,,,searching for stat cargo
+2026-03-03 16:30:34.110881,image_search,,,template=config/icons/planets/stats/cargo.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=start
+2026-03-03 16:30:34.208684,image_search,,,template=config/icons/planets/stats/cargo.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=found;score=0.9999;center_x=1490;center_y=1470
+2026-03-03 16:30:34.211175,stat_upgrade,,,searching for stat cargo; found stat cargo; moving right 400px; moving down 100px
+2026-03-03 16:30:34.313705,mouse_move,,,x=1890;y=1570;target=cargo;phase=stat_upgrade_click_offset
+2026-03-03 16:30:34.417027,mouse_click,,,x=1890;y=1570;button=left;target=cargo;phase=stat_upgrade_click_offset
+2026-03-03 16:30:34.418084,stat_upgrade,,,clicking 1 time; upgrade complete
+2026-03-03 16:30:34.419665,stat_upgrade,,,closing planet tab
+2026-03-03 16:30:34.421706,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=start
+2026-03-03 16:30:34.501287,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=found;score=0.9759;center_x=1984;center_y=548
+2026-03-03 16:30:34.602480,mouse_move,,,x=1984;y=548;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:34.705966,mouse_click,,,x=1984;y=548;button=left;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:34.707300,stat_upgrade,,,upgrading planet p3; stat mining_rate
+2026-03-03 16:30:34.707901,stat_upgrade,,,searching for planet p3
+2026-03-03 16:30:34.708458,image_search,,,template=config/icons/planets/unlocked/p3.png;region=full_screen;confidence=0.750;status=start
+2026-03-03 16:30:35.073490,image_search,,,template=config/icons/planets/unlocked/p3.png;region=full_screen;confidence=0.750;status=found;score=0.8595;center_x=1779;center_y=1011
+2026-03-03 16:30:35.082786,stat_upgrade,,,searching for planet p3; found planet p3; opening planet p3
+2026-03-03 16:30:35.184063,mouse_move,,,x=1779;y=1011;target=p3;phase=stat_upgrade_open_planet
+2026-03-03 16:30:35.309563,mouse_click,,,x=1779;y=1011;button=left;target=p3;phase=stat_upgrade_open_planet
+2026-03-03 16:30:35.597468,stat_upgrade,,,searching for stat mining_rate
+2026-03-03 16:30:35.598031,image_search,,,template=config/icons/planets/stats/mining_rate.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=start
+2026-03-03 16:30:35.685555,image_search,,,template=config/icons/planets/stats/mining_rate.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=found;score=0.9999;center_x=1553;center_y=1174
+2026-03-03 16:30:35.686641,stat_upgrade,,,searching for stat mining_rate; found stat mining_rate; moving right 400px; moving down 100px
+2026-03-03 16:30:35.787544,mouse_move,,,x=1953;y=1274;target=mining_rate;phase=stat_upgrade_click_offset
+2026-03-03 16:30:35.897378,mouse_click,,,x=1953;y=1274;button=left;target=mining_rate;phase=stat_upgrade_click_offset
+2026-03-03 16:30:35.898156,stat_upgrade,,,clicking 1 time; upgrade complete
+2026-03-03 16:30:35.898704,stat_upgrade,,,closing planet tab
+2026-03-03 16:30:35.901973,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=start
+2026-03-03 16:30:35.966922,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=found;score=0.9759;center_x=1984;center_y=548
+2026-03-03 16:30:36.067982,mouse_move,,,x=1984;y=548;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:36.170743,mouse_click,,,x=1984;y=548;button=left;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:36.171985,stat_upgrade,,,upgrading planet p3; stat ship_speed
+2026-03-03 16:30:36.173084,stat_upgrade,,,searching for planet p3
+2026-03-03 16:30:36.173663,image_search,,,template=config/icons/planets/unlocked/p3.png;region=full_screen;confidence=0.750;status=start
+2026-03-03 16:30:36.573691,image_search,,,template=config/icons/planets/unlocked/p3.png;region=full_screen;confidence=0.750;status=found;score=0.8702;center_x=1779;center_y=1010
+2026-03-03 16:30:36.578579,stat_upgrade,,,searching for planet p3; found planet p3; opening planet p3
+2026-03-03 16:30:36.679989,mouse_move,,,x=1779;y=1010;target=p3;phase=stat_upgrade_open_planet
+2026-03-03 16:30:36.783010,mouse_click,,,x=1779;y=1010;button=left;target=p3;phase=stat_upgrade_open_planet
+2026-03-03 16:30:36.989315,stat_upgrade,,,searching for stat ship_speed
+2026-03-03 16:30:36.990035,image_search,,,template=config/icons/planets/stats/ship_speed.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=start
+2026-03-03 16:30:37.071421,image_search,,,template=config/icons/planets/stats/ship_speed.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=found;score=0.9463;center_x=1541;center_y=1318
+2026-03-03 16:30:37.072216,stat_upgrade,,,searching for stat ship_speed; found stat ship_speed; moving right 400px; moving down 100px
+2026-03-03 16:30:37.173083,mouse_move,,,x=1941;y=1418;target=ship_speed;phase=stat_upgrade_click_offset
+2026-03-03 16:30:37.275415,mouse_click,,,x=1941;y=1418;button=left;target=ship_speed;phase=stat_upgrade_click_offset
+2026-03-03 16:30:37.276591,stat_upgrade,,,clicking 1 time; upgrade complete
+2026-03-03 16:30:37.278798,stat_upgrade,,,closing planet tab
+2026-03-03 16:30:37.282483,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=start
+2026-03-03 16:30:37.356995,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=found;score=0.9759;center_x=1984;center_y=548
+2026-03-03 16:30:37.459430,mouse_move,,,x=1984;y=548;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:37.566514,mouse_click,,,x=1984;y=548;button=left;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:37.567680,stat_upgrade,,,upgrading planet p3; stat cargo
+2026-03-03 16:30:37.568368,stat_upgrade,,,searching for planet p3
+2026-03-03 16:30:37.569038,image_search,,,template=config/icons/planets/unlocked/p3.png;region=full_screen;confidence=0.750;status=start
+2026-03-03 16:30:37.969782,image_search,,,template=config/icons/planets/unlocked/p3.png;region=full_screen;confidence=0.750;status=found;score=0.8707;center_x=1779;center_y=1010
+2026-03-03 16:30:37.974302,stat_upgrade,,,searching for planet p3; found planet p3; opening planet p3
+2026-03-03 16:30:38.075511,mouse_move,,,x=1779;y=1010;target=p3;phase=stat_upgrade_open_planet
+2026-03-03 16:30:38.180257,mouse_click,,,x=1779;y=1010;button=left;target=p3;phase=stat_upgrade_open_planet
+2026-03-03 16:30:38.474487,stat_upgrade,,,searching for stat cargo
+2026-03-03 16:30:38.475564,image_search,,,template=config/icons/planets/stats/cargo.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=start
+2026-03-03 16:30:38.565792,image_search,,,template=config/icons/planets/stats/cargo.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=found;score=0.9999;center_x=1490;center_y=1470
+2026-03-03 16:30:38.568019,stat_upgrade,,,searching for stat cargo; found stat cargo; moving right 400px; moving down 100px
+2026-03-03 16:30:38.668760,mouse_move,,,x=1890;y=1570;target=cargo;phase=stat_upgrade_click_offset
+2026-03-03 16:30:38.772723,mouse_click,,,x=1890;y=1570;button=left;target=cargo;phase=stat_upgrade_click_offset
+2026-03-03 16:30:38.773919,stat_upgrade,,,clicking 1 time; upgrade complete
+2026-03-03 16:30:38.775008,stat_upgrade,,,closing planet tab
+2026-03-03 16:30:38.777089,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=start
+2026-03-03 16:30:38.851045,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=found;score=0.9759;center_x=1984;center_y=548
+2026-03-03 16:30:38.952044,mouse_move,,,x=1984;y=548;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:39.064518,mouse_click,,,x=1984;y=548;button=left;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:39.065393,stat_upgrade,,,upgrading planet p4; stat mining_rate
+2026-03-03 16:30:39.066311,stat_upgrade,,,searching for planet p4
+2026-03-03 16:30:39.066921,image_search,,,template=config/icons/planets/unlocked/p4.png;region=full_screen;confidence=0.750;status=start
+2026-03-03 16:30:39.415220,image_search,,,template=config/icons/planets/unlocked/p4.png;region=full_screen;confidence=0.750;status=found;score=0.8569;center_x=1566;center_y=1038
+2026-03-03 16:30:39.422484,stat_upgrade,,,searching for planet p4; found planet p4; opening planet p4
+2026-03-03 16:30:39.523894,mouse_move,,,x=1566;y=1038;target=p4;phase=stat_upgrade_open_planet
+2026-03-03 16:30:39.626772,mouse_click,,,x=1566;y=1038;button=left;target=p4;phase=stat_upgrade_open_planet
+2026-03-03 16:30:39.830966,stat_upgrade,,,searching for stat mining_rate
+2026-03-03 16:30:39.832233,image_search,,,template=config/icons/planets/stats/mining_rate.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=start
+2026-03-03 16:30:39.925424,image_search,,,template=config/icons/planets/stats/mining_rate.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=found;score=0.9999;center_x=1553;center_y=1174
+2026-03-03 16:30:39.927062,stat_upgrade,,,searching for stat mining_rate; found stat mining_rate; moving right 400px; moving down 100px
+2026-03-03 16:30:40.028295,mouse_move,,,x=1953;y=1274;target=mining_rate;phase=stat_upgrade_click_offset
+2026-03-03 16:30:40.131404,mouse_click,,,x=1953;y=1274;button=left;target=mining_rate;phase=stat_upgrade_click_offset
+2026-03-03 16:30:40.132771,stat_upgrade,,,clicking 1 time; upgrade complete
+2026-03-03 16:30:40.133800,stat_upgrade,,,closing planet tab
+2026-03-03 16:30:40.137309,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=start
+2026-03-03 16:30:40.204097,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=found;score=0.9759;center_x=1984;center_y=548
+2026-03-03 16:30:40.305207,mouse_move,,,x=1984;y=548;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:40.407317,mouse_click,,,x=1984;y=548;button=left;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:40.408522,stat_upgrade,,,upgrading planet p4; stat ship_speed
+2026-03-03 16:30:40.409540,stat_upgrade,,,searching for planet p4
+2026-03-03 16:30:40.410181,image_search,,,template=config/icons/planets/unlocked/p4.png;region=full_screen;confidence=0.750;status=start
+2026-03-03 16:30:40.786050,image_search,,,template=config/icons/planets/unlocked/p4.png;region=full_screen;confidence=0.750;status=found;score=0.8609;center_x=1566;center_y=1038
+2026-03-03 16:30:40.791432,stat_upgrade,,,searching for planet p4; found planet p4; opening planet p4
+2026-03-03 16:30:40.892504,mouse_move,,,x=1566;y=1038;target=p4;phase=stat_upgrade_open_planet
+2026-03-03 16:30:40.998417,mouse_click,,,x=1566;y=1038;button=left;target=p4;phase=stat_upgrade_open_planet
+2026-03-03 16:30:41.293277,stat_upgrade,,,searching for stat ship_speed
+2026-03-03 16:30:41.293871,image_search,,,template=config/icons/planets/stats/ship_speed.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=start
+2026-03-03 16:30:41.388703,image_search,,,template=config/icons/planets/stats/ship_speed.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=found;score=0.9463;center_x=1541;center_y=1318
+2026-03-03 16:30:41.390505,stat_upgrade,,,searching for stat ship_speed; found stat ship_speed; moving right 400px; moving down 100px
+2026-03-03 16:30:41.491674,mouse_move,,,x=1941;y=1418;target=ship_speed;phase=stat_upgrade_click_offset
+2026-03-03 16:30:41.593370,mouse_click,,,x=1941;y=1418;button=left;target=ship_speed;phase=stat_upgrade_click_offset
+2026-03-03 16:30:41.594724,stat_upgrade,,,clicking 1 time; upgrade complete
+2026-03-03 16:30:41.598147,stat_upgrade,,,closing planet tab
+2026-03-03 16:30:41.599976,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=start
+2026-03-03 16:30:41.667321,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=found;score=0.9759;center_x=1984;center_y=548
+2026-03-03 16:30:41.768158,mouse_move,,,x=1984;y=548;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:41.871912,mouse_click,,,x=1984;y=548;button=left;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:41.873961,stat_upgrade,,,upgrading planet p4; stat cargo
+2026-03-03 16:30:41.875241,stat_upgrade,,,searching for planet p4
+2026-03-03 16:30:41.876131,image_search,,,template=config/icons/planets/unlocked/p4.png;region=full_screen;confidence=0.750;status=start
+2026-03-03 16:30:42.258268,image_search,,,template=config/icons/planets/unlocked/p4.png;region=full_screen;confidence=0.750;status=found;score=0.8652;center_x=1566;center_y=1038
+2026-03-03 16:30:42.265093,stat_upgrade,,,searching for planet p4; found planet p4; opening planet p4
+2026-03-03 16:30:42.365985,mouse_move,,,x=1566;y=1038;target=p4;phase=stat_upgrade_open_planet
+2026-03-03 16:30:42.472658,mouse_click,,,x=1566;y=1038;button=left;target=p4;phase=stat_upgrade_open_planet
+2026-03-03 16:30:42.678096,stat_upgrade,,,searching for stat cargo
+2026-03-03 16:30:42.678953,image_search,,,template=config/icons/planets/stats/cargo.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=start
+2026-03-03 16:30:42.768422,image_search,,,template=config/icons/planets/stats/cargo.png;region=x=1300;y=1100;w=400;h=700;confidence=0.750;status=found;score=0.9999;center_x=1490;center_y=1470
+2026-03-03 16:30:42.769557,stat_upgrade,,,searching for stat cargo; found stat cargo; moving right 400px; moving down 100px
+2026-03-03 16:30:42.870682,mouse_move,,,x=1890;y=1570;target=cargo;phase=stat_upgrade_click_offset
+2026-03-03 16:30:42.974814,mouse_click,,,x=1890;y=1570;button=left;target=cargo;phase=stat_upgrade_click_offset
+2026-03-03 16:30:42.975989,stat_upgrade,,,clicking 1 time; upgrade complete
+2026-03-03 16:30:42.978142,stat_upgrade,,,closing planet tab
+2026-03-03 16:30:42.990762,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=start
+2026-03-03 16:30:43.062869,image_search,,,template=config/icons/planets/stats/planet_tab.png;region=x=1800;y=500;w=400;h=100;confidence=0.750;status=found;score=0.9759;center_x=1984;center_y=548
+2026-03-03 16:30:43.163597,mouse_move,,,x=1984;y=548;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:43.266474,mouse_click,,,x=1984;y=548;button=left;target=planet_tab;phase=stat_upgrade_close_tab
+2026-03-03 16:30:45.359538,down,q,16,keyboard_hook
+2026-03-03 16:30:45.495260,up,q,16,keyboard_hook
+2026-03-03 16:30:46.364748,down,q,16,keyboard_hook

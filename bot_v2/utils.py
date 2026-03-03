@@ -14,6 +14,7 @@ from datetime import datetime
 _OCR_READER = None
 _INPUT_LOG_PATH = None
 _ZOOM_MODIFIER_KEY = 'ctrlleft'
+_SEARCH_DEBUG_DIR_NAME = 'search_screenshots'
 _AD_BANNER_CACHE = {
     'expires_at': 0.0,
     'present': False,
@@ -47,6 +48,38 @@ def _resolve_local_path(path_value):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), path_value)
 
 
+def _build_debug_output_dir(debug_dir):
+    if not debug_dir:
+        return None
+    if os.path.isabs(debug_dir):
+        output_dir = debug_dir
+    else:
+        output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), debug_dir)
+    os.makedirs(output_dir, exist_ok=True)
+    return output_dir
+
+
+def _sanitize_filename_part(value):
+    return re.sub(r'[^a-zA-Z0-9._-]+', '_', str(value))
+
+
+def _save_template_search_screenshot(screenshot, template_path, search_region, debug_dir=_SEARCH_DEBUG_DIR_NAME):
+    output_dir = _build_debug_output_dir(debug_dir)
+    if output_dir is None:
+        return None
+
+    template_name = _sanitize_filename_part(os.path.splitext(os.path.basename(template_path))[0])
+    if search_region is None:
+        filename = f"search_{template_name}_full_screen_latest.png"
+    else:
+        x, y, width, height = search_region
+        filename = f"search_{template_name}_x{x}_y{y}_w{width}_h{height}_latest.png"
+
+    output_path = os.path.join(output_dir, filename)
+    screenshot.save(output_path)
+    return output_path
+
+
 def _find_template_match(template_path, search_region=None, confidence=0.75):
     """Find a template and return center/score details or None if not found."""
     try:
@@ -75,6 +108,12 @@ def _find_template_match(template_path, search_region=None, confidence=0.75):
             return None
 
         screenshot = pyautogui.screenshot(region=search_region)
+        _save_template_search_screenshot(
+            screenshot=screenshot,
+            template_path=template_path,
+            search_region=search_region,
+            debug_dir=_SEARCH_DEBUG_DIR_NAME,
+        )
         screenshot_np = np.array(screenshot)
         screenshot_gray = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2GRAY)
 
@@ -660,31 +699,27 @@ def _save_currency_debug_screenshot(screenshot, region, debug_dir):
     if not debug_dir:
         return None
 
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    output_dir = debug_dir if os.path.isabs(debug_dir) else os.path.join(base_dir, debug_dir)
-    os.makedirs(output_dir, exist_ok=True)
+    output_dir = _build_debug_output_dir(debug_dir)
+    if output_dir is None:
+        return None
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     x, y, width, height = region
-    filename = f"currency_region_x{x}_y{y}_w{width}_h{height}.png"
+    filename = "currency_region_latest.png"
     output_path = os.path.join(output_dir, filename)
     screenshot.save(output_path)
 
-    # Keep only the newest 20 debug screenshots
-    max_debug_files = 20
-    debug_files = []
+    stale_currency_debug_files = []
     for entry in os.scandir(output_dir):
-        if entry.is_file() and entry.name.startswith("currency_region_") and entry.name.endswith(".png"):
-            debug_files.append((entry.path, entry.stat().st_mtime))
+        if not entry.is_file():
+            continue
+        if entry.name.startswith("currency_region_") and entry.name.endswith(".png") and entry.path != output_path:
+            stale_currency_debug_files.append(entry.path)
 
-    if len(debug_files) > max_debug_files:
-        debug_files.sort(key=lambda item: item[1])
-        files_to_remove = debug_files[: len(debug_files) - max_debug_files]
-        for file_path, _ in files_to_remove:
-            try:
-                os.remove(file_path)
-            except OSError:
-                pass
+    for file_path in stale_currency_debug_files:
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass
 
     return output_path
 

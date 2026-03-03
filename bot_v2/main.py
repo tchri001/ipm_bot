@@ -521,23 +521,19 @@ def value_checker(currency_region, galaxy_value_region, debug_dir_name):
         print("Galaxy value: not detected")
 
 
-def game_window_setup(base_dir):
+def load_runtime_config(base_dir):
     ref_config_path = os.path.join(base_dir, 'config', 'ipm_config.json')
     default_scroll_start_grid = "T9"
     default_currency_region_start_grid = "I1"
     default_currency_region_end_grid = "P2"
     enable_focus_click = True  # Toggle this on/off for pre-zoom focus click
+    run_window_setup = True
 
-    set_zoom_modifier_key('ctrl')
-    print("Using zoom modifier key: ctrl")
-
-    # Open/focus BlueStacks
-    open_bluestacks()
-
-    # Load startup grids from config and backfill keys if missing
     grid_target = default_scroll_start_grid
     currency_region_start_grid = default_currency_region_start_grid
     currency_region_end_grid = default_currency_region_end_grid
+
+    config_changed = False
     try:
         if os.path.exists(ref_config_path):
             with open(ref_config_path, 'r', encoding='utf-8') as config_file:
@@ -555,7 +551,12 @@ def game_window_setup(base_dir):
             if config_currency_end:
                 currency_region_end_grid = config_currency_end
 
-            config_changed = False
+            if 'enable_focus_click' in config_data:
+                enable_focus_click = bool(config_data.get('enable_focus_click'))
+
+            if 'run_window_setup' in config_data:
+                run_window_setup = bool(config_data.get('run_window_setup'))
+
             if 'scroll_start_grid' not in config_data:
                 config_data['scroll_start_grid'] = default_scroll_start_grid
                 config_changed = True
@@ -565,67 +566,18 @@ def game_window_setup(base_dir):
             if 'currency_region_end_grid' not in config_data:
                 config_data['currency_region_end_grid'] = default_currency_region_end_grid
                 config_changed = True
+            if 'enable_focus_click' not in config_data:
+                config_data['enable_focus_click'] = enable_focus_click
+                config_changed = True
+            if 'run_window_setup' not in config_data:
+                config_data['run_window_setup'] = run_window_setup
+                config_changed = True
 
             if config_changed:
                 with open(ref_config_path, 'w', encoding='utf-8') as config_file:
                     json.dump(config_data, config_file, indent=2)
     except Exception as e:
-        print(f"Warning: could not load startup grids from config: {e}")
-
-    print(f"Using scroll_start_grid: {grid_target}")
-    print(f"Using currency region grid bounds: {currency_region_start_grid} -> {currency_region_end_grid}")
-
-    # Move mouse to a grid location before any scrolling/zoom occurs
-    coords = get_grid_midpoint(grid_target)
-    if coords:
-        x, y = coords
-        try:
-            pyautogui.moveTo(x, y, duration=0.2)
-            print(f"Moved mouse to {grid_target} (x={x}, y={y})")
-            log_input_event('mouse_move', '', '', f'x={x};y={y};phase=pre_zoom_initial_focus')
-            if enable_focus_click:
-                pyautogui.click()
-                print("Clicked to focus window before zoom")
-                log_input_event('mouse_click', '', '', f'x={x};y={y};button=left;phase=pre_zoom_initial_focus')
-            else:
-                print("Focus click disabled (enable_focus_click=False)")
-        except Exception as e:
-            print(f"Could not move mouse: {e}")
-    else:
-        print(f"Could not find grid coordinates for {grid_target}")
-
-    # Zoom in before any reference-image detection/alignment.
-    zoom_to_max()
-
-    # Ensure reference icon anchor config exists (one-time calibration)
-    if not os.path.exists(ref_config_path):
-        print("Reference anchor config not found. Detecting ref_icon.png and saving anchor now...")
-        anchor_saved = save_reference_icon_anchor(template_path='config/ref_icon.png', config_path='config/ipm_config.json', confidence=0.75)
-        if anchor_saved is None:
-            print("Warning: could not detect reference icon to save anchor coordinates.")
-
-    # Startup alignment: drag map until reference icon is near saved coordinates
-    alignment_ok = align_screen_to_reference_icon(config_path='config/ipm_config.json', tolerance_px=30, max_attempts=8)
-    if not alignment_ok:
-        print("Warning: reference alignment did not converge; continuing with current position.")
-
-    # Reposition to grid target after alignment (dragging may move cursor elsewhere)
-    coords = get_grid_midpoint(grid_target)
-    if coords:
-        x, y = coords
-        try:
-            pyautogui.moveTo(x, y, duration=0.2)
-            print(f"Repositioned mouse to {grid_target} before zoom (x={x}, y={y})")
-            log_input_event('mouse_move', '', '', f'x={x};y={y};phase=pre_zoom_reposition')
-            if enable_focus_click:
-                pyautogui.click()
-                print("Clicked to focus window before zoom (post-alignment)")
-                log_input_event('mouse_click', '', '', f'x={x};y={y};button=left;phase=pre_zoom_reposition')
-        except Exception as e:
-            print(f"Could not reposition mouse before zoom: {e}")
-
-    # After max-zoom alignment, zoom out to the configured working level.
-    zoom_out_configured_amount()
+        print(f"Warning: could not load runtime config from ipm_config.json: {e}")
 
     # Currency monitor region from config bounds
     currency_region = get_grid_region(currency_region_start_grid, currency_region_end_grid)
@@ -659,7 +611,91 @@ def game_window_setup(base_dir):
     debug_dir_path = os.path.join(base_dir, debug_dir_name)
     os.makedirs(debug_dir_path, exist_ok=True)
 
-    return currency_region, galaxy_value_region, debug_dir_name
+    return {
+        'ref_config_path': ref_config_path,
+        'grid_target': grid_target,
+        'currency_region_start_grid': currency_region_start_grid,
+        'currency_region_end_grid': currency_region_end_grid,
+        'enable_focus_click': enable_focus_click,
+        'run_window_setup': run_window_setup,
+        'currency_region': currency_region,
+        'galaxy_value_region': galaxy_value_region,
+        'debug_dir_name': debug_dir_name,
+    }
+
+
+def game_window_setup(base_dir, runtime_config, run_setup=True):
+    ref_config_path = runtime_config['ref_config_path']
+    grid_target = runtime_config['grid_target']
+    currency_region_start_grid = runtime_config['currency_region_start_grid']
+    currency_region_end_grid = runtime_config['currency_region_end_grid']
+    enable_focus_click = bool(runtime_config.get('enable_focus_click', True))
+
+    set_zoom_modifier_key('ctrl')
+    print("Using zoom modifier key: ctrl")
+
+    print(f"Using scroll_start_grid: {grid_target}")
+    print(f"Using currency region grid bounds: {currency_region_start_grid} -> {currency_region_end_grid}")
+
+    if run_setup:
+        # Open/focus BlueStacks
+        open_bluestacks()
+
+        # Move mouse to a grid location before any scrolling/zoom occurs
+        coords = get_grid_midpoint(grid_target)
+        if coords:
+            x, y = coords
+            try:
+                pyautogui.moveTo(x, y, duration=0.2)
+                print(f"Moved mouse to {grid_target} (x={x}, y={y})")
+                log_input_event('mouse_move', '', '', f'x={x};y={y};phase=pre_zoom_initial_focus')
+                if enable_focus_click:
+                    pyautogui.click()
+                    print("Clicked to focus window before zoom")
+                    log_input_event('mouse_click', '', '', f'x={x};y={y};button=left;phase=pre_zoom_initial_focus')
+                else:
+                    print("Focus click disabled (enable_focus_click=False)")
+            except Exception as e:
+                print(f"Could not move mouse: {e}")
+        else:
+            print(f"Could not find grid coordinates for {grid_target}")
+
+        # Zoom in before any reference-image detection/alignment.
+        zoom_to_max()
+
+        # Ensure reference icon anchor config exists (one-time calibration)
+        if not os.path.exists(ref_config_path):
+            print("Reference anchor config not found. Detecting ref_icon.png and saving anchor now...")
+            anchor_saved = save_reference_icon_anchor(template_path='config/ref_icon.png', config_path='config/ipm_config.json', confidence=0.75)
+            if anchor_saved is None:
+                print("Warning: could not detect reference icon to save anchor coordinates.")
+
+        # Startup alignment: drag map until reference icon is near saved coordinates
+        alignment_ok = align_screen_to_reference_icon(config_path='config/ipm_config.json', tolerance_px=30, max_attempts=8)
+        if not alignment_ok:
+            print("Warning: reference alignment did not converge; continuing with current position.")
+
+        # Reposition to grid target after alignment (dragging may move cursor elsewhere)
+        coords = get_grid_midpoint(grid_target)
+        if coords:
+            x, y = coords
+            try:
+                pyautogui.moveTo(x, y, duration=0.2)
+                print(f"Repositioned mouse to {grid_target} before zoom (x={x}, y={y})")
+                log_input_event('mouse_move', '', '', f'x={x};y={y};phase=pre_zoom_reposition')
+                if enable_focus_click:
+                    pyautogui.click()
+                    print("Clicked to focus window before zoom (post-alignment)")
+                    log_input_event('mouse_click', '', '', f'x={x};y={y};button=left;phase=pre_zoom_reposition')
+            except Exception as e:
+                print(f"Could not reposition mouse before zoom: {e}")
+
+        # After max-zoom alignment, zoom out to the configured working level.
+        zoom_out_configured_amount()
+    else:
+        print("Skipping game window setup actions (run_window_setup=False)")
+
+    return None
 
 
 def run_gameplay_loop(currency_region, galaxy_value_region, debug_dir_name):
@@ -709,7 +745,18 @@ if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
     game_log_path = os.path.join(base_dir, 'game_log.txt')
     setup_game_log(game_log_path)
-    currency_region, galaxy_value_region, debug_dir_name = game_window_setup(base_dir)
+    runtime_config = load_runtime_config(base_dir)
+    """
+    game_window_setup(
+        base_dir=base_dir,
+        runtime_config=runtime_config,
+        run_setup=bool(runtime_config.get('run_window_setup', True)),
+    )
+    """
+
+    currency_region = runtime_config['currency_region']
+    galaxy_value_region = runtime_config['galaxy_value_region']
+    debug_dir_name = runtime_config['debug_dir_name']
 
     run_gameplay_loop(
         currency_region=currency_region,

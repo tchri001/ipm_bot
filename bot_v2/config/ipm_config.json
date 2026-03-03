@@ -20,5 +20,7 @@
   "ad_banner_nonblack_ratio_threshold": 0.35,
   "tolerance_px": 50,
   "confidence": 0.75,
-  "saved_at": "2026-03-01T00:19:42.751798"
+  "saved_at": "2026-03-01T00:19:42.751798",
+  "enable_focus_click": true,
+  "run_window_setup": true
 }

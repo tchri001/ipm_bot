@@ -708,14 +708,18 @@ def _save_currency_debug_screenshot(screenshot, region, debug_dir, debug_filenam
     output_path = os.path.join(output_dir, filename)
     screenshot.save(output_path)
 
-    stale_currency_debug_files = []
+    name_root, name_ext = os.path.splitext(filename)
+    same_target_prefix = f"{name_root}_"
+    stale_debug_files = []
     for entry in os.scandir(output_dir):
         if not entry.is_file():
             continue
-        if entry.name.startswith("currency_region_") and entry.name.endswith(".png") and entry.path != output_path:
-            stale_currency_debug_files.append(entry.path)
+        if entry.path == output_path:
+            continue
+        if entry.name.startswith(same_target_prefix) and entry.name.endswith(name_ext):
+            stale_debug_files.append(entry.path)
 
-    for file_path in stale_currency_debug_files:
+    for file_path in stale_debug_files:
         try:
             os.remove(file_path)
         except OSError:

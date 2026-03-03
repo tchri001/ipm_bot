@@ -497,6 +497,30 @@ def stat_upgrade(planet, stat):
     return True
 
 
+def value_checker(currency_region, galaxy_value_region, debug_dir_name):
+    currency = get_currency_value_with_visualization(
+        region=currency_region,
+        display=False,
+        debug_dir=debug_dir_name,
+        debug_filename='currency_region_latest.png',
+    )
+    if currency is not None:
+        print(f"Cash: ${currency:,}")
+    else:
+        print("Cash: not detected")
+
+    galaxy_value = get_currency_value_with_visualization(
+        region=galaxy_value_region,
+        display=False,
+        debug_dir=debug_dir_name,
+        debug_filename='galaxy_value_check.png',
+    )
+    if galaxy_value is not None:
+        print(f"Galaxy value: ${galaxy_value:,}")
+    else:
+        print("Galaxy value: not detected")
+
+
 def run_gameplay_loop(currency_region, galaxy_value_region, debug_dir_name):
     """
     Gameplay logic starts here.
@@ -531,27 +555,11 @@ def run_gameplay_loop(currency_region, galaxy_value_region, debug_dir_name):
 
         now = time.time()
         if now >= next_check:
-            currency = get_currency_value_with_visualization(
-                region=currency_region,
-                display=False,
-                debug_dir=debug_dir_name,
-                debug_filename='currency_region_latest.png',
+            value_checker(
+                currency_region=currency_region,
+                galaxy_value_region=galaxy_value_region,
+                debug_dir_name=debug_dir_name,
             )
-            if currency is not None:
-                print(f"Cash: ${currency:,}")
-            else:
-                print("Cash: not detected")
-
-            galaxy_value = get_currency_value_with_visualization(
-                region=galaxy_value_region,
-                display=False,
-                debug_dir=debug_dir_name,
-                debug_filename='galaxy_value_check.png',
-            )
-            if galaxy_value is not None:
-                print(f"Galaxy value: ${galaxy_value:,}")
-            else:
-                print("Galaxy value: not detected")
             next_check = now + 5
 
         time.sleep(0.1)

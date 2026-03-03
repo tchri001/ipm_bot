@@ -3,7 +3,8 @@ import json
 import os
 import shutil
 import time
-from datetime import datetime
+import sys
+import atexit
 import pyautogui
 from utils import (
     open_bluestacks,
@@ -14,7 +15,6 @@ from utils import (
     get_currency_value_with_visualization,
     get_grid_midpoint,
     get_grid_region,
-    set_input_log_path,
     log_input_event,
     set_zoom_modifier_key,
     save_reference_icon_anchor,
@@ -22,22 +22,34 @@ from utils import (
 )
 
 
-def start_keypress_logger(log_path):
-    """
-    Log all keyboard events (down/up) to help debug unexpected input behavior.
-    """
-    with open(log_path, 'w', encoding='utf-8') as log_file:
-        log_file.write("timestamp,event,key,scan_code,details\n")
+class _StreamTee:
+    def __init__(self, *streams):
+        self._streams = streams
 
-    def _on_key_event(event):
+    def write(self, data):
+        for stream in self._streams:
+            stream.write(data)
+        return len(data)
+
+    def flush(self):
+        for stream in self._streams:
+            stream.flush()
+
+
+def setup_game_log(log_path):
+    log_file = open(log_path, 'a', encoding='utf-8', buffering=1)
+    sys.stdout = _StreamTee(sys.__stdout__, log_file)
+    sys.stderr = _StreamTee(sys.__stderr__, log_file)
+
+    def _close_log_file():
         try:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            with open(log_path, 'a', encoding='utf-8') as log_file:
-                log_file.write(f"{timestamp},{event.event_type},{event.name},{event.scan_code},keyboard_hook\n")
+            log_file.flush()
+            log_file.close()
         except OSError:
             pass
 
-    return keyboard.hook(_on_key_event)
+    atexit.register(_close_log_file)
+    print(f"Logging console output to: {log_path}")
 
 
 def open_resources_tab():
@@ -485,7 +497,7 @@ def stat_upgrade(planet, stat):
     return True
 
 
-def run_gameplay_loop(currency_region, debug_dir_name, key_log_hook):
+def run_gameplay_loop(currency_region, galaxy_value_region, debug_dir_name):
     """
     Gameplay logic starts here.
     Setup/calibration should be completed before calling this function.
@@ -499,11 +511,13 @@ def run_gameplay_loop(currency_region, debug_dir_name, key_log_hook):
     #unlock_planet("P11","Q11","p4",0,10)
     #sell_ores("lead")
 
+    """
     planets = ["p1", "p2", "p3", "p4"]
     for planet in planets:
         stat_upgrade(planet, "mining_rate")
         stat_upgrade(planet, "ship_speed")
         stat_upgrade(planet, "cargo")
+    """
 
     print(f"\nMonitoring currency every 5 seconds in region: {currency_region}")
     print("Press 'q' to exit.")
@@ -513,7 +527,6 @@ def run_gameplay_loop(currency_region, debug_dir_name, key_log_hook):
     while True:
         if keyboard.is_pressed('q'):
             print("Exiting program...")
-            keyboard.unhook(key_log_hook)
             os._exit(0)
 
         now = time.time()
@@ -522,26 +535,36 @@ def run_gameplay_loop(currency_region, debug_dir_name, key_log_hook):
                 region=currency_region,
                 display=False,
                 debug_dir=debug_dir_name,
+                debug_filename='currency_region_latest.png',
             )
             if currency is not None:
-                print(f"Cash: ${currency}")
+                print(f"Cash: ${currency:,}")
             else:
                 print("Cash: not detected")
+
+            galaxy_value = get_currency_value_with_visualization(
+                region=galaxy_value_region,
+                display=False,
+                debug_dir=debug_dir_name,
+                debug_filename='galaxy_value_check.png',
+            )
+            if galaxy_value is not None:
+                print(f"Galaxy value: ${galaxy_value:,}")
+            else:
+                print("Galaxy value: not detected")
             next_check = now + 5
 
         time.sleep(0.1)
 
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    key_log_path = os.path.join(base_dir, 'key_press_log.txt')
+    game_log_path = os.path.join(base_dir, 'game_log.txt')
+    setup_game_log(game_log_path)
     ref_config_path = os.path.join(base_dir, 'config', 'ipm_config.json')
     default_scroll_start_grid = "T9"
     default_currency_region_start_grid = "I1"
     default_currency_region_end_grid = "P2"
     enable_focus_click = True  # Toggle this on/off for pre-zoom focus click
-    set_input_log_path(key_log_path)
-    key_log_hook = start_keypress_logger(key_log_path)
-    print(f"Logging key events to: {key_log_path}")
 
     set_zoom_modifier_key('ctrl')
     print("Using zoom modifier key: ctrl")
@@ -653,22 +676,29 @@ if __name__ == "__main__":
     rx, ry, rw, rh = currency_region
     currency_region = (rx, ry + 50, rw, max(1, rh - 100))
 
-    # Clear debug screenshot folder at startup (safer on Windows/OneDrive)
+    # Galaxy value region from M3-P4, trimmed by 5% left/right, 20% top, and 35% bottom
+    galaxy_value_region = get_grid_region('M3', 'P4')
+    if galaxy_value_region is None:
+        galaxy_value_region = (1200, 200, 400, 200)
+        print("Using fallback galaxy value region (1200, 200, 400, 200)")
+    gx, gy, gw, gh = galaxy_value_region
+    galaxy_trim_x = int(gw * 0.05)
+    galaxy_trim_top = int(gh * 0.20)
+    galaxy_trim_bottom = int(gh * 0.35)
+    galaxy_value_region = (
+        gx + galaxy_trim_x,
+        gy + galaxy_trim_top,
+        max(1, gw - (galaxy_trim_x * 2)),
+        max(1, gh - galaxy_trim_top - galaxy_trim_bottom),
+    )
+
+    # Ensure debug screenshot folder exists.
     debug_dir_name = 'search_screenshots'
     debug_dir_path = os.path.join(base_dir, debug_dir_name)
     os.makedirs(debug_dir_path, exist_ok=True)
 
-    for entry in os.scandir(debug_dir_path):
-        try:
-            if entry.is_file():
-                os.remove(entry.path)
-            elif entry.is_dir():
-                shutil.rmtree(entry.path, ignore_errors=True)
-        except OSError as e:
-            print(f"Warning: could not remove {entry.path}: {e}")
-
     run_gameplay_loop(
         currency_region=currency_region,
+        galaxy_value_region=galaxy_value_region,
         debug_dir_name=debug_dir_name,
-        key_log_hook=key_log_hook,
     )

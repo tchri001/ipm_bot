@@ -694,7 +694,7 @@ def _extract_currency_from_texts(texts):
     return None
 
 
-def _save_currency_debug_screenshot(screenshot, region, debug_dir):
+def _save_currency_debug_screenshot(screenshot, region, debug_dir, debug_filename='currency_region_latest.png'):
     """Save the OCR crop image for debugging where currency detection is looking."""
     if not debug_dir:
         return None
@@ -704,7 +704,7 @@ def _save_currency_debug_screenshot(screenshot, region, debug_dir):
         return None
 
     x, y, width, height = region
-    filename = "currency_region_latest.png"
+    filename = str(debug_filename).strip() or 'currency_region_latest.png'
     output_path = os.path.join(output_dir, filename)
     screenshot.save(output_path)
 
@@ -1020,7 +1020,7 @@ def zoom_to_max_then_down_one():
     zoom_out_configured_amount()
 
 
-def get_currency_value_with_visualization(region=(0, 0, 1920, 150), display=True, debug_dir=None):
+def get_currency_value_with_visualization(region=(0, 0, 1920, 150), display=True, debug_dir=None, debug_filename='currency_region_latest.png'):
     """
     Captures currency value from the game window using OCR.
     
@@ -1036,9 +1036,7 @@ def get_currency_value_with_visualization(region=(0, 0, 1920, 150), display=True
         screenshot = pyautogui.screenshot(region=region)
 
         # Save OCR target crop for debugging if requested
-        saved_path = _save_currency_debug_screenshot(screenshot, region, debug_dir)
-        if saved_path:
-            print(f"Saved OCR crop: {saved_path}")
+        _save_currency_debug_screenshot(screenshot, region, debug_dir, debug_filename=debug_filename)
 
         # Reuse OCR reader for faster repeated polling
         reader = _get_ocr_reader()

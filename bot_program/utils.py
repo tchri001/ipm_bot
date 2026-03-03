@@ -856,7 +856,7 @@ def open_resources_interface(
     interface_search_end='V17',
     verify_search_start='S8',
     verify_search_end='V9',
-    closed_icon_template='config/icons/tabs/resources_icon_closed.png',
+    closed_icon_template='config/icons/tabs/closed/resources_icon_closed.png',
     resource_window_template='config/icons/tabs/resource_window.png',
     click_confidence=0.75,
     verify_confidence=0.75,

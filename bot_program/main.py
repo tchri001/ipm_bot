@@ -59,7 +59,7 @@ def open_resources_tab(interface_search_start, interface_search_end):
         interface_search_end=interface_search_end,
         verify_search_start='S8',
         verify_search_end='V9',
-        closed_icon_template='config/icons/tabs/resources_icon_closed.png',
+        closed_icon_template='config/icons/tabs/closed/resources_icon_closed.png',
         resource_window_template='config/icons/tabs/resource_window.png',
         click_confidence=0.75,
         verify_confidence=0.75,
@@ -118,9 +118,9 @@ def close_projects_tab():
 def research_project(project_name, taskbar_search_start_grid, taskbar_search_end_grid):
     project_code = str(project_name).strip().lower()
     project_template_path = f'config/icons/projects/project_icons/{project_code}.png'
-    projects_tab_template_path = 'config/icons/tabs/projects_icon_closed.png'
-    project_available_template_path = 'config/icons/projects/project_available.png'
-    project_unavailable_template_path = 'config/icons/projects/project_unavailable.png'
+    projects_tab_template_path = 'config/icons/tabs/closed/projects_icon_closed.png'
+    project_available_template_path = 'config/icons/projects/research_project.png'
+    project_unavailable_template_path = 'config/icons/projects/project_cost_unmet.png'
 
     print(f"Unlock project: {project_code}")
     log_input_event('research_project', '', '', f'project={project_code};status=start')
@@ -535,7 +535,7 @@ def sell_ores(ore_name, taskbar_search_start_grid, taskbar_search_end_grid):
     )
 
     close_tab_region = get_grid_region(taskbar_search_start_grid, taskbar_search_end_grid)
-    close_tab_template_path = 'config/icons/tabs/resources_icon_open.png'
+    close_tab_template_path = 'config/icons/tabs/open/resources_icon_open.png'
     if close_tab_region is None:
         log_input_event(
             'ore_sell',
@@ -1022,7 +1022,7 @@ def run_gameplay_loop(
     #unlock_planet("P11","Q11","p4",0,10)
     #sell_ores("lead", taskbar_search_start_grid, taskbar_search_end_grid)
     #research_project("management",taskbar_search_start_grid,taskbar_search_end_grid)
-    research_project("smelter",taskbar_search_start_grid,taskbar_search_end_grid)
+    research_project("telescope_1",taskbar_search_start_grid,taskbar_search_end_grid)
 
     """
     planets = ["p1", "p2", "p3", "p4"]

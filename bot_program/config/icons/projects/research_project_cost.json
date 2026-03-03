@@ -51,6 +51,20 @@
         }
       ]
     },
+    "telescope_1": {
+      "materials": [
+        {
+          "name": "iron",
+          "category": "ore",
+          "quantity": 750
+        },
+        {
+          "name": "copper",
+          "category": "bar",
+          "quantity": 2
+        }
+      ]
+    },
     "template": {
       "materials": [
         {

@@ -164,9 +164,208 @@ def _find_template_match(template_path, search_region=None, confidence=0.75):
         return None
 
 
+def _find_template_match_color(template_path, search_region=None, confidence=0.75):
+    """Find a template with color matching and return center/score details or None if not found."""
+    try:
+        if search_region is None:
+            region_details = 'full_screen'
+        else:
+            rx, ry, rw, rh = search_region
+            region_details = f'x={int(rx)};y={int(ry)};w={int(rw)};h={int(rh)}'
+
+        log_input_event(
+            'image_search',
+            '',
+            '',
+            f'template={template_path};region={region_details};confidence={float(confidence):.3f};mode=color;status=start'
+        )
+
+        template_full_path = _resolve_local_path(template_path)
+        template_img = cv2.imread(template_full_path, cv2.IMREAD_COLOR)
+        if template_img is None:
+            log_input_event(
+                'image_search',
+                '',
+                '',
+                f'template={template_path};region={region_details};confidence={float(confidence):.3f};mode=color;status=template_missing'
+            )
+            return None
+
+        screenshot = pyautogui.screenshot(region=search_region)
+        _save_template_search_screenshot(
+            screenshot=screenshot,
+            template_path=template_path,
+            search_region=search_region,
+            debug_dir=_SEARCH_DEBUG_DIR_NAME,
+        )
+        screenshot_np = np.array(screenshot)
+        screenshot_bgr = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2BGR)
+
+        result = cv2.matchTemplate(screenshot_bgr, template_img, cv2.TM_CCOEFF_NORMED)
+        _, max_val, _, max_loc = cv2.minMaxLoc(result)
+        if max_val < confidence:
+            log_input_event(
+                'image_search',
+                '',
+                '',
+                (
+                    f'template={template_path};region={region_details};confidence={float(confidence):.3f};'
+                    f'mode=color;status=not_found;score={float(max_val):.4f}'
+                )
+            )
+            return None
+
+        template_h, template_w, _ = template_img.shape
+        center_x = max_loc[0] + (template_w // 2)
+        center_y = max_loc[1] + (template_h // 2)
+
+        if search_region is not None:
+            region_x, region_y, _, _ = search_region
+            center_x += region_x
+            center_y += region_y
+
+        log_input_event(
+            'image_search',
+            '',
+            '',
+            (
+                f'template={template_path};region={region_details};confidence={float(confidence):.3f};'
+                f'mode=color;status=found;score={float(max_val):.4f};center_x={int(center_x)};center_y={int(center_y)}'
+            )
+        )
+
+        return {
+            'center_x': int(center_x),
+            'center_y': int(center_y),
+            'score': float(max_val),
+            'template_w': int(template_w),
+            'template_h': int(template_h),
+        }
+    except Exception as e:
+        log_input_event(
+            'image_search',
+            '',
+            '',
+            f'template={template_path};confidence={float(confidence):.3f};mode=color;status=error;error={e}'
+        )
+        return None
+
+
+def _find_template_match_brightness(template_path, search_region=None, confidence=0.75):
+    """Find a template using brightness (HSV V channel) and return center/score details or None."""
+    try:
+        if search_region is None:
+            region_details = 'full_screen'
+        else:
+            rx, ry, rw, rh = search_region
+            region_details = f'x={int(rx)};y={int(ry)};w={int(rw)};h={int(rh)}'
+
+        log_input_event(
+            'image_search',
+            '',
+            '',
+            f'template={template_path};region={region_details};confidence={float(confidence):.3f};mode=brightness;status=start'
+        )
+
+        template_full_path = _resolve_local_path(template_path)
+        template_img_bgr = cv2.imread(template_full_path, cv2.IMREAD_COLOR)
+        if template_img_bgr is None:
+            log_input_event(
+                'image_search',
+                '',
+                '',
+                f'template={template_path};region={region_details};confidence={float(confidence):.3f};mode=brightness;status=template_missing'
+            )
+            return None
+
+        screenshot = pyautogui.screenshot(region=search_region)
+        _save_template_search_screenshot(
+            screenshot=screenshot,
+            template_path=template_path,
+            search_region=search_region,
+            debug_dir=_SEARCH_DEBUG_DIR_NAME,
+        )
+
+        screenshot_np = np.array(screenshot)
+        screenshot_bgr = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2BGR)
+
+        template_v = cv2.cvtColor(template_img_bgr, cv2.COLOR_BGR2HSV)[:, :, 2]
+        screenshot_v = cv2.cvtColor(screenshot_bgr, cv2.COLOR_BGR2HSV)[:, :, 2]
+
+        result = cv2.matchTemplate(screenshot_v, template_v, cv2.TM_SQDIFF_NORMED)
+        min_val, _, min_loc, _ = cv2.minMaxLoc(result)
+        score = 1.0 - float(min_val)
+
+        if score < confidence:
+            log_input_event(
+                'image_search',
+                '',
+                '',
+                (
+                    f'template={template_path};region={region_details};confidence={float(confidence):.3f};'
+                    f'mode=brightness;status=not_found;score={score:.4f};sqdiff={float(min_val):.4f}'
+                )
+            )
+            return None
+
+        template_h, template_w = template_v.shape
+        center_x = min_loc[0] + (template_w // 2)
+        center_y = min_loc[1] + (template_h // 2)
+
+        if search_region is not None:
+            region_x, region_y, _, _ = search_region
+            center_x += region_x
+            center_y += region_y
+
+        log_input_event(
+            'image_search',
+            '',
+            '',
+            (
+                f'template={template_path};region={region_details};confidence={float(confidence):.3f};'
+                f'mode=brightness;status=found;score={score:.4f};sqdiff={float(min_val):.4f};'
+                f'center_x={int(center_x)};center_y={int(center_y)}'
+            )
+        )
+
+        return {
+            'center_x': int(center_x),
+            'center_y': int(center_y),
+            'score': float(score),
+            'template_w': int(template_w),
+            'template_h': int(template_h),
+        }
+    except Exception as e:
+        log_input_event(
+            'image_search',
+            '',
+            '',
+            f'template={template_path};confidence={float(confidence):.3f};mode=brightness;status=error;error={e}'
+        )
+        return None
+
+
 def find_template_match(template_path, search_region=None, confidence=0.75):
     """Public wrapper for template matching with shared logging behavior."""
     return _find_template_match(
+        template_path=template_path,
+        search_region=search_region,
+        confidence=confidence,
+    )
+
+
+def find_template_match_color(template_path, search_region=None, confidence=0.75):
+    """Public wrapper for color template matching with shared logging behavior."""
+    return _find_template_match_color(
+        template_path=template_path,
+        search_region=search_region,
+        confidence=confidence,
+    )
+
+
+def find_template_match_brightness(template_path, search_region=None, confidence=0.75):
+    """Public wrapper for brightness-based template matching (HSV value channel)."""
+    return _find_template_match_brightness(
         template_path=template_path,
         search_region=search_region,
         confidence=confidence,

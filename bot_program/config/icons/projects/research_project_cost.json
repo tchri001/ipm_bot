@@ -65,6 +65,20 @@
         }
       ]
     },
+    "crafter": {
+      "materials": [
+        {
+          "name": "lead",
+          "category": "ore",
+          "quantity": 2500
+        },
+        {
+          "name": "iron",
+          "category": "bar",
+          "quantity": 2
+        }
+      ]
+    },
     "template": {
       "materials": [
         {

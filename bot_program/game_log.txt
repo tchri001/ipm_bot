@@ -692,3 +692,190 @@ C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\u
 Cash: $17,060,000
 Galaxy value: $92,000,000
 Exiting program...
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.743); applying X offset +290px
+Unlock project: telescope_1
+Opening project tab
+Checking project availability
+Project available
+Project unlocked: telescope_1
+Could not find projects tab close icon
+
+Monitoring currency every 5 seconds in region: (1200, 50, 300, 100)
+Press 'q' to exit.
+Saving OCR crops to bot_program/search_screenshots
+Initializing OCR reader (first run may take a moment)...
+Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Cash: $17,550,000
+Galaxy value: $20,510,000
+Exiting program...
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.743); applying X offset +290px
+Unlock project: telescope_1
+Opening project tab
+Checking project availability
+Project unavailable
+
+Monitoring currency every 5 seconds in region: (1200, 50, 300, 100)
+Press 'q' to exit.
+Saving OCR crops to bot_program/search_screenshots
+Initializing OCR reader (first run may take a moment)...
+Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Cash: $17,640,000
+Galaxy value: $20,610,000
+Exiting program...
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.743); applying X offset +290px
+Unlock project: telescope_1
+Opening project tab
+Checking project availability
+Project unavailable
+Closed individual project window
+Projects tab closed
+
+Monitoring currency every 5 seconds in region: (1200, 50, 300, 100)
+Press 'q' to exit.
+Saving OCR crops to bot_program/search_screenshots
+Initializing OCR reader (first run may take a moment)...
+Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Cash: $17,970,000
+Galaxy value: $20,990,000
+Exiting program...
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.743); applying X offset +290px
+Unlock project: telescope_1
+Opening project tab
+Checking project availability
+Project unavailable
+Closed individual project window
+Projects tab closed
+
+Monitoring currency every 5 seconds in region: (1200, 50, 300, 100)
+Press 'q' to exit.
+Saving OCR crops to bot_program/search_screenshots
+Initializing OCR reader (first run may take a moment)...
+Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Cash: $18,060,000
+Galaxy value: $21,200,000
+Exiting program...
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.743); applying X offset +290px
+Unlock project: telescope_1
+Opening project tab
+Checking project availability
+Project unavailable
+Closed individual project window
+Projects tab closed
+
+Monitoring currency every 5 seconds in region: (1200, 50, 300, 100)
+Press 'q' to exit.
+Saving OCR crops to bot_program/search_screenshots
+Initializing OCR reader (first run may take a moment)...
+Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Cash: $18,110,000
+Galaxy value: $21,260,000
+Exiting program...
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.743); applying X offset +290px
+Unlock project: telescope_1
+Opening project tab
+Checking project availability
+Project unavailable
+Closed individual project window
+Projects tab closed
+
+Monitoring currency every 5 seconds in region: (1200, 50, 300, 100)
+Press 'q' to exit.
+Saving OCR crops to bot_program/search_screenshots
+Initializing OCR reader (first run may take a moment)...
+Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Cash: $18,170,000
+Galaxy value: $21,320,000
+Traceback (most recent call last):
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\main.py", line 1146, in <module>
+    run_gameplay_loop(
+    ~~~~~~~~~~~~~~~~~^
+        currency_region=currency_region,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        taskbar_search_end_grid=taskbar_search_end_grid,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\main.py", line 1124, in run_gameplay_loop
+    time.sleep(0.1)
+    ~~~~~~~~~~^^^^^
+KeyboardInterrupt
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.743); applying X offset +290px
+Unlock project: crafter
+Opening project tab
+Checking project availability
+Project unavailable
+Closed individual project window
+Projects tab closed
+
+Monitoring currency every 5 seconds in region: (1200, 50, 300, 100)
+Press 'q' to exit.
+Saving OCR crops to bot_program/search_screenshots
+Initializing OCR reader (first run may take a moment)...
+Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Cash: $18,210,000
+Galaxy value: $21,380,000
+Exiting program...
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.743); applying X offset +290px
+Unlock project: crafter
+Opening project tab
+Checking project availability
+Availability scores -> available=0.9632, cost_unmet=0.9644, confidence=0.60, margin=0.03
+Availability decision flags -> available_wins=False, unavailable_wins=True
+Project unavailable
+Closed individual project window
+Projects tab closed
+
+Monitoring currency every 5 seconds in region: (1200, 50, 300, 100)
+Press 'q' to exit.
+Saving OCR crops to bot_program/search_screenshots
+Initializing OCR reader (first run may take a moment)...
+Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Cash: $18,310,000
+Galaxy value: $21,490,000
+Exiting program...
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.743); applying X offset +290px
+Unlock project: crafter
+Opening project tab
+Checking project availability
+Availability scores -> available=0.9674, cost_unmet=-1.0000, confidence=0.60, margin=0.03
+Availability decision flags -> available_wins=True, unavailable_wins=False
+Project available
+Project unlocked: crafter
+Projects tab closed
+
+Monitoring currency every 5 seconds in region: (1200, 50, 300, 100)
+Press 'q' to exit.
+Saving OCR crops to bot_program/search_screenshots
+Initializing OCR reader (first run may take a moment)...
+Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Cash: $18,480,000
+Galaxy value: $21,710,000
+Exiting program...

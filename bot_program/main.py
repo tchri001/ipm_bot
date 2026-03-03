@@ -12,6 +12,7 @@ from utils import (
     zoom_out_configured_amount,
     open_resources_interface,
     find_template_match,
+    find_template_match_brightness,
     get_currency_value_with_visualization,
     get_grid_midpoint,
     get_grid_region,
@@ -121,6 +122,7 @@ def research_project(project_name, taskbar_search_start_grid, taskbar_search_end
     projects_tab_template_path = 'config/icons/tabs/closed/projects_icon_closed.png'
     project_available_template_path = 'config/icons/projects/research_project.png'
     project_unavailable_template_path = 'config/icons/projects/project_cost_unmet.png'
+    close_project_template_path = 'config/icons/projects/close_project.png'
 
     print(f"Unlock project: {project_code}")
     log_input_event('research_project', '', '', f'project={project_code};status=start')
@@ -224,12 +226,55 @@ def research_project(project_name, taskbar_search_start_grid, taskbar_search_end
         max(1, ah - (trim_y * 2)),
     )
 
-    available_detection = find_template_match(
+    availability_confidence = 0.60
+    availability_score_margin = 0.03
+
+    available_detection = find_template_match_brightness(
         template_path=project_available_template_path,
         search_region=availability_region_trimmed,
-        confidence=0.75,
+        confidence=availability_confidence,
     )
-    if available_detection is not None:
+    unavailable_detection = find_template_match_brightness(
+        template_path=project_unavailable_template_path,
+        search_region=availability_region_trimmed,
+        confidence=availability_confidence,
+    )
+
+    available_score = float(available_detection['score']) if available_detection is not None else -1.0
+    unavailable_score = float(unavailable_detection['score']) if unavailable_detection is not None else -1.0
+    log_input_event(
+        'research_project',
+        '',
+        '',
+        (
+            f'project={project_code};status=availability_scores;'
+            f'available_score={available_score:.4f};unavailable_score={unavailable_score:.4f};'
+            f'confidence={availability_confidence:.2f};margin={availability_score_margin:.2f}'
+        )
+    )
+    print(
+        "Availability scores -> "
+        f"available={available_score:.4f}, "
+        f"cost_unmet={unavailable_score:.4f}, "
+        f"confidence={availability_confidence:.2f}, "
+        f"margin={availability_score_margin:.2f}"
+    )
+
+    available_wins = (
+        available_detection is not None
+        and (unavailable_detection is None or available_score >= (unavailable_score + availability_score_margin))
+    )
+    unavailable_wins = (
+        unavailable_detection is not None
+        and (available_detection is None or unavailable_score >= (available_score - availability_score_margin))
+    )
+    print(
+        "Availability decision flags -> "
+        f"available_wins={available_wins}, "
+        f"unavailable_wins={unavailable_wins}"
+    )
+
+    if available_wins:
         print("Project available")
         available_x = int(available_detection['center_x'])
         available_y = int(available_detection['center_y'])
@@ -243,15 +288,46 @@ def research_project(project_name, taskbar_search_start_grid, taskbar_search_end
         close_projects_tab()
         return available_detection
 
-    unavailable_detection = find_template_match(
-        template_path=project_unavailable_template_path,
-        search_region=availability_region_trimmed,
-        confidence=0.75,
-    )
-    if unavailable_detection is not None:
+    if unavailable_wins:
         print("Project unavailable")
         log_input_event('research_project', '', '', f'project={project_code};status=unavailable')
-        #TODO: ADD UNAVAILABLE LOGIC HERE
+
+        close_project_region = get_grid_region('Q15', 'R16')
+        if close_project_region is None:
+            log_input_event(
+                'research_project',
+                '',
+                '',
+                f'project={project_code};status=close_project_region_error;region=Q15-R16'
+            )
+            print("Could not resolve close project region Q15-R16")
+        else:
+            close_project_detection = find_template_match(
+                template_path=close_project_template_path,
+                search_region=close_project_region,
+                confidence=0.75,
+            )
+            if close_project_detection is not None:
+                close_project_x = int(close_project_detection['center_x'])
+                close_project_y = int(close_project_detection['center_y'])
+                pyautogui.moveTo(close_project_x, close_project_y, duration=0.1)
+                log_input_event('mouse_move', '', '', f'x={close_project_x};y={close_project_y};target=close_project;phase=research_project_close_project_window')
+                pyautogui.click(close_project_x, close_project_y)
+                log_input_event('mouse_click', '', '', f'x={close_project_x};y={close_project_y};button=left;target=close_project;phase=research_project_close_project_window')
+                print("Closed individual project window")
+            else:
+                log_input_event(
+                    'research_project',
+                    '',
+                    '',
+                    (
+                        f'project={project_code};status=close_project_not_found;'
+                        f'template={close_project_template_path};region=Q15-R16'
+                    )
+                )
+                print("Could not find close_project icon")
+
+        close_projects_tab()
         return unavailable_detection
 
     print("Could not determine project availability state")
@@ -1022,7 +1098,7 @@ def run_gameplay_loop(
     #unlock_planet("P11","Q11","p4",0,10)
     #sell_ores("lead", taskbar_search_start_grid, taskbar_search_end_grid)
     #research_project("management",taskbar_search_start_grid,taskbar_search_end_grid)
-    research_project("telescope_1",taskbar_search_start_grid,taskbar_search_end_grid)
+    research_project("crafter",taskbar_search_start_grid,taskbar_search_end_grid)
 
     """
     planets = ["p1", "p2", "p3", "p4"]

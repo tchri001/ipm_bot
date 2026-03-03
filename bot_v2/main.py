@@ -521,53 +521,7 @@ def value_checker(currency_region, galaxy_value_region, debug_dir_name):
         print("Galaxy value: not detected")
 
 
-def run_gameplay_loop(currency_region, galaxy_value_region, debug_dir_name):
-    """
-    Gameplay logic starts here.
-    Setup/calibration should be completed before calling this function.
-    """
-    #unlock_planet("Q8","Q9","p1",20,0)
-    #sell_ores("copper")
-    #unlock_planet("R8","R8","p2",0,0)
-    #sell_ores("iron")
-    #open_resources_tab()
-    #unlock_planet("R10","S11","p3",10,10)
-    #unlock_planet("P11","Q11","p4",0,10)
-    #sell_ores("lead")
-
-    """
-    planets = ["p1", "p2", "p3", "p4"]
-    for planet in planets:
-        stat_upgrade(planet, "mining_rate")
-        stat_upgrade(planet, "ship_speed")
-        stat_upgrade(planet, "cargo")
-    """
-
-    print(f"\nMonitoring currency every 5 seconds in region: {currency_region}")
-    print("Press 'q' to exit.")
-    print("Saving OCR crops to bot_v2/search_screenshots")
-
-    next_check = 0.0
-    while True:
-        if keyboard.is_pressed('q'):
-            print("Exiting program...")
-            os._exit(0)
-
-        now = time.time()
-        if now >= next_check:
-            value_checker(
-                currency_region=currency_region,
-                galaxy_value_region=galaxy_value_region,
-                debug_dir_name=debug_dir_name,
-            )
-            next_check = now + 5
-
-        time.sleep(0.1)
-
-if __name__ == "__main__":
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    game_log_path = os.path.join(base_dir, 'game_log.txt')
-    setup_game_log(game_log_path)
+def game_window_setup(base_dir):
     ref_config_path = os.path.join(base_dir, 'config', 'ipm_config.json')
     default_scroll_start_grid = "T9"
     default_currency_region_start_grid = "I1"
@@ -704,6 +658,58 @@ if __name__ == "__main__":
     debug_dir_name = 'search_screenshots'
     debug_dir_path = os.path.join(base_dir, debug_dir_name)
     os.makedirs(debug_dir_path, exist_ok=True)
+
+    return currency_region, galaxy_value_region, debug_dir_name
+
+
+def run_gameplay_loop(currency_region, galaxy_value_region, debug_dir_name):
+    """
+    Gameplay logic starts here.
+    Setup/calibration should be completed before calling this function.
+    """
+    #unlock_planet("Q8","Q9","p1",20,0)
+    #sell_ores("copper")
+    #unlock_planet("R8","R8","p2",0,0)
+    #sell_ores("iron")
+    #open_resources_tab()
+    #unlock_planet("R10","S11","p3",10,10)
+    #unlock_planet("P11","Q11","p4",0,10)
+    #sell_ores("lead")
+
+    """
+    planets = ["p1", "p2", "p3", "p4"]
+    for planet in planets:
+        stat_upgrade(planet, "mining_rate")
+        stat_upgrade(planet, "ship_speed")
+        stat_upgrade(planet, "cargo")
+    """
+
+    print(f"\nMonitoring currency every 5 seconds in region: {currency_region}")
+    print("Press 'q' to exit.")
+    print("Saving OCR crops to bot_v2/search_screenshots")
+
+    next_check = 0.0
+    while True:
+        if keyboard.is_pressed('q'):
+            print("Exiting program...")
+            os._exit(0)
+
+        now = time.time()
+        if now >= next_check:
+            value_checker(
+                currency_region=currency_region,
+                galaxy_value_region=galaxy_value_region,
+                debug_dir_name=debug_dir_name,
+            )
+            next_check = now + 5
+
+        time.sleep(0.1)
+
+if __name__ == "__main__":
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    game_log_path = os.path.join(base_dir, 'game_log.txt')
+    setup_game_log(game_log_path)
+    currency_region, galaxy_value_region, debug_dir_name = game_window_setup(base_dir)
 
     run_gameplay_loop(
         currency_region=currency_region,

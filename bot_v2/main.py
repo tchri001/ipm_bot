@@ -497,12 +497,74 @@ def stat_upgrade(planet, stat):
     return True
 
 
-def value_checker(currency_region, galaxy_value_region, debug_dir_name):
+def _apply_value_stability_guard(metric_name, observed_value, stability_state, jump_factor=10.0):
+    if observed_value is None:
+        return None
+
+    last_value = stability_state.get('last')
+    pending_value = stability_state.get('pending')
+
+    if last_value is None:
+        stability_state['last'] = int(observed_value)
+        stability_state['pending'] = None
+        return int(observed_value)
+
+    smaller = max(1, min(int(last_value), int(observed_value)))
+    larger = max(int(last_value), int(observed_value))
+    ratio = float(larger) / float(smaller)
+
+    if ratio <= float(jump_factor):
+        stability_state['last'] = int(observed_value)
+        stability_state['pending'] = None
+        return int(observed_value)
+
+    if pending_value is not None and int(pending_value) == int(observed_value):
+        stability_state['last'] = int(observed_value)
+        stability_state['pending'] = None
+        print(
+            f"{metric_name} stability guard: accepted confirmed jump "
+            f"from ${int(last_value):,} to ${int(observed_value):,}"
+        )
+        log_input_event(
+            'value_guard',
+            '',
+            '',
+            (
+                f'metric={metric_name};status=accepted_confirmed_jump;'
+                f'from={int(last_value)};to={int(observed_value)};ratio={ratio:.2f}'
+            )
+        )
+        return int(observed_value)
+
+    stability_state['pending'] = int(observed_value)
+    print(
+        f"{metric_name} stability guard: held suspicious jump "
+        f"from ${int(last_value):,} to ${int(observed_value):,}; waiting for confirmation"
+    )
+    log_input_event(
+        'value_guard',
+        '',
+        '',
+        (
+            f'metric={metric_name};status=held_suspicious_jump;'
+            f'from={int(last_value)};to={int(observed_value)};ratio={ratio:.2f}'
+        )
+    )
+    return int(last_value)
+
+
+def value_checker(currency_region, galaxy_value_region, debug_dir_name, value_stability_state):
     currency = get_currency_value_with_visualization(
         region=currency_region,
         display=False,
         debug_dir=debug_dir_name,
         debug_filename='currency_region_latest.png',
+    )
+    currency = _apply_value_stability_guard(
+        metric_name='cash',
+        observed_value=currency,
+        stability_state=value_stability_state['cash'],
+        jump_factor=10.0,
     )
     if currency is not None:
         print(f"Cash: ${currency:,}")
@@ -514,6 +576,12 @@ def value_checker(currency_region, galaxy_value_region, debug_dir_name):
         display=False,
         debug_dir=debug_dir_name,
         debug_filename='galaxy_value_check.png',
+    )
+    galaxy_value = _apply_value_stability_guard(
+        metric_name='galaxy_value',
+        observed_value=galaxy_value,
+        stability_state=value_stability_state['galaxy_value'],
+        jump_factor=10.0,
     )
     if galaxy_value is not None:
         print(f"Galaxy value: ${galaxy_value:,}")
@@ -724,6 +792,11 @@ def run_gameplay_loop(currency_region, galaxy_value_region, debug_dir_name):
     print("Press 'q' to exit.")
     print("Saving OCR crops to bot_v2/search_screenshots")
 
+    value_stability_state = {
+        'cash': {'last': None, 'pending': None},
+        'galaxy_value': {'last': None, 'pending': None},
+    }
+
     next_check = 0.0
     while True:
         if keyboard.is_pressed('q'):
@@ -736,6 +809,7 @@ def run_gameplay_loop(currency_region, galaxy_value_region, debug_dir_name):
                 currency_region=currency_region,
                 galaxy_value_region=galaxy_value_region,
                 debug_dir_name=debug_dir_name,
+                value_stability_state=value_stability_state,
             )
             next_check = now + 5
 
@@ -746,13 +820,14 @@ if __name__ == "__main__":
     game_log_path = os.path.join(base_dir, 'game_log.txt')
     setup_game_log(game_log_path)
     runtime_config = load_runtime_config(base_dir)
-    """
-    game_window_setup(
-        base_dir=base_dir,
-        runtime_config=runtime_config,
-        run_setup=bool(runtime_config.get('run_window_setup', True)),
-    )
-    """
+    
+    setup = False
+    if setup == True:
+        game_window_setup(
+            base_dir=base_dir,
+            runtime_config=runtime_config,
+            run_setup=bool(runtime_config.get('run_window_setup', True)),
+        )
 
     currency_region = runtime_config['currency_region']
     galaxy_value_region = runtime_config['galaxy_value_region']

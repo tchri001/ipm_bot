@@ -5,6 +5,7 @@ import shutil
 import time
 import sys
 import atexit
+import threading
 import pyautogui
 from utils import (
     open_bluestacks,
@@ -35,6 +36,36 @@ class _StreamTee:
     def flush(self):
         for stream in self._streams:
             stream.flush()
+
+
+_EXIT_LISTENER_STARTED = False
+
+
+def _exit_hotkey_worker():
+    while True:
+        try:
+            if keyboard.is_pressed('q'):
+                print("Exit hotkey detected ('q'). Exiting program...")
+                os._exit(0)
+            time.sleep(0.05)
+        except Exception as e:
+            print(f"Warning: exit hotkey listener error: {e}")
+            time.sleep(0.5)
+
+
+def start_exit_hotkey_listener():
+    global _EXIT_LISTENER_STARTED
+    if _EXIT_LISTENER_STARTED:
+        return
+
+    listener_thread = threading.Thread(
+        target=_exit_hotkey_worker,
+        name='exit_hotkey_listener',
+        daemon=True,
+    )
+    listener_thread.start()
+    _EXIT_LISTENER_STARTED = True
+    print("Exit hotkey listener started (press 'q' any time to exit)")
 
 
 def setup_game_log(log_path):
@@ -1108,7 +1139,7 @@ def run_gameplay_loop(
     sell_ores("iron", taskbar_search_start_grid, taskbar_search_end_grid)
     time.sleep(10)
     upgrade("p2")
-    """
+    
 
     #open_resources_tab(taskbar_search_start_grid, taskbar_search_end_grid)
     #unlock_planet("R10","S11","p3",10,10)q
@@ -1120,6 +1151,11 @@ def run_gameplay_loop(
     sell_ores("lead", taskbar_search_start_grid, taskbar_search_end_grid)
     time.sleep(10)
     upgrade("p4")
+    
+    for planet in ['p1', 'p2', 'p3', 'p4']:
+        upgrade(planet)
+    """
+    upgrade("p1")
     #research_project("management",taskbar_search_start_grid,taskbar_search_end_grid)
     #research_project("crafter",taskbar_search_start_grid,taskbar_search_end_grid)
 
@@ -1134,10 +1170,6 @@ def run_gameplay_loop(
 
     next_check = 0.0
     while True:
-        if keyboard.is_pressed('q'):
-            print("Exiting program...")
-            os._exit(0)
-
         now = time.time()
         if now >= next_check:
             value_checker(
@@ -1151,7 +1183,17 @@ def run_gameplay_loop(
         time.sleep(0.1)
 
 if __name__ == "__main__":
+    start_exit_hotkey_listener()
     base_dir = os.path.dirname(os.path.abspath(__file__))
+    search_screenshots_dir = os.path.join(base_dir, 'search_screenshots')
+    try:
+        if os.path.exists(search_screenshots_dir):
+            shutil.rmtree(search_screenshots_dir)
+        os.makedirs(search_screenshots_dir, exist_ok=True)
+        print(f"Reset search screenshot directory: {search_screenshots_dir}")
+    except Exception as e:
+        print(f"Warning: could not reset search screenshot directory: {e}")
+
     game_log_path = os.path.join(base_dir, 'game_log.txt')
     setup_game_log(game_log_path)
     runtime_config = load_runtime_config(base_dir)

@@ -1173,7 +1173,7 @@ def open_bluestacks():
                     subprocess.Popen(path)
                     print(f"BlueStacks launched from {path}")
                     launched = True
-                    time.sleep(2)  # Wait for BlueStacks to start
+                    time.sleep(0.5)  # Wait for BlueStacks to start
                     break
             
             if not launched:
@@ -1188,16 +1188,16 @@ def zoom_to_max():
     Zoom in to maximum using configured scroll amount.
     """
     scroll_up_amount, _ = _get_zoom_scroll_amounts(config_path='config/ipm_config.json')
-    time.sleep(2)  # Wait for BlueStacks to be ready before zoom input
+    time.sleep(0.5)  # Wait for BlueStacks to be ready before zoom input
 
     pyautogui.keyDown(_ZOOM_MODIFIER_KEY)
-    time.sleep(0.4)
+    time.sleep(0.5)
     for i in range(5):
         pyautogui.scroll(scroll_up_amount)
         log_input_event('mouse_scroll', '', '', f'amount={scroll_up_amount};zoom_in_iter={i+1}')
-        time.sleep(0.1)
+        time.sleep(0.2)
     pyautogui.keyUp(_ZOOM_MODIFIER_KEY)
-    time.sleep(0.4)
+    time.sleep(0.5)
     print("Zoomed in to maximum")
 
 

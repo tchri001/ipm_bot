@@ -1,6 +1,7 @@
 import keyboard
 import os
 import shutil
+import threading
 import time
 import pyautogui
 from utils import (
@@ -885,6 +886,32 @@ def value_checker(currency_region, galaxy_value_region, debug_dir_name, value_st
         print("Galaxy value: not detected")
 
 
+def start_value_monitor_listener(currency_region, galaxy_value_region, debug_dir_name):
+    value_stability_state = {
+        'cash': {'last': None, 'pending': None},
+        'galaxy_value': {'last': None, 'pending': None},
+    }
+
+    def _monitor_loop():
+        next_check = 0.0
+        while True:
+            now = time.time()
+            if now >= next_check:
+                value_checker(
+                    currency_region=currency_region,
+                    galaxy_value_region=galaxy_value_region,
+                    debug_dir_name=debug_dir_name,
+                    value_stability_state=value_stability_state,
+                )
+                next_check = now + 5
+
+            time.sleep(0.1)
+
+    monitor_thread = threading.Thread(target=_monitor_loop, daemon=True, name='value-monitor')
+    monitor_thread.start()
+    return monitor_thread
+
+
 def upgrade(planet):
         stat_upgrade(planet, "mining_rate")
         stat_upgrade(planet, "ship_speed")
@@ -901,7 +928,7 @@ def run_gameplay_loop(
     Gameplay logic starts here.
     Setup/calibration should be completed before calling this function.
     """
-    open_planet("p1")
+    #open_planet("p1")
     """
     unlock_planet("p1")
     time.sleep(0.5)
@@ -916,42 +943,22 @@ def run_gameplay_loop(
     open_resources_tab(taskbar_search_start_grid, taskbar_search_end_grid)
     unlock_planet("p3")
     time.sleep(10)
-
+    
     unlock_planet("p4")
     time.sleep(0.5)
     sell_ores("lead", taskbar_search_start_grid, taskbar_search_end_grid)
     time.sleep(10)
-
+    """
     for planet in ['p1', 'p2', 'p3', 'p4']:
         upgrade(planet)
-    """
+    
 
     #Planet search regions/trims come from config/ipm_config.json -> planet_regions.
 
     #research_project("management",taskbar_search_start_grid,taskbar_search_end_grid)
     #research_project("crafter",taskbar_search_start_grid,taskbar_search_end_grid)
 
-    print(f"\nMonitoring currency every 5 seconds in region: {currency_region}")
-    print("Press 'q' to exit.")
-    print("Saving OCR crops to bot_program/search_screenshots")
-
-    value_stability_state = {
-        'cash': {'last': None, 'pending': None},
-        'galaxy_value': {'last': None, 'pending': None},
-    }
-
-    next_check = 0.0
     while True:
-        now = time.time()
-        if now >= next_check:
-            value_checker(
-                currency_region=currency_region,
-                galaxy_value_region=galaxy_value_region,
-                debug_dir_name=debug_dir_name,
-                value_stability_state=value_stability_state,
-            )
-            next_check = now + 5
-
         time.sleep(0.1)
 
 if __name__ == "__main__":
@@ -991,6 +998,15 @@ if __name__ == "__main__":
     debug_dir_name = runtime_config['debug_dir_name']
     taskbar_search_start_grid = runtime_config['taskbar_search_start_grid']
     taskbar_search_end_grid = runtime_config['taskbar_search_end_grid']
+
+    print(f"\nMonitoring currency every 5 seconds in region: {currency_region}")
+    print("Press 'q' to exit.")
+    print("Saving OCR crops to bot_program/search_screenshots")
+    start_value_monitor_listener(
+        currency_region=currency_region,
+        galaxy_value_region=galaxy_value_region,
+        debug_dir_name=debug_dir_name,
+    )
 
     run_gameplay_loop(
         currency_region=currency_region,

@@ -1,0 +1,6 @@
+New game testing stability as it doesn't find the planets sometimes and doesn't always close the resource window when selling stuff
+Logic to open ores/alloys/items tabs
+Logic to open smelting/crafting tabs
+Logic to unlock new alloys/items
+Logic to check ore/alloy/item counts
+Logic to assign managers

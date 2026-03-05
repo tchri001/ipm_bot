@@ -1,5 +1,5 @@
 Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
-Ad banner detected via left_strip (score=0.677); applying X offset +290px
+Ad banner detected via left_strip (score=0.667); applying X offset +290px
 Using zoom modifier key: ctrl
 Using scroll_start_grid: T9
 Using currency region grid bounds: M1 -> O2
@@ -7,32 +7,20 @@ BlueStacks brought to focus
 Moved mouse to T9 (x=1950, y=850)
 Clicked to focus window before zoom
 Zoomed in to maximum
-Reference aligned within tolerance (30px): dx=7, dy=22
+Reference aligned within tolerance (30px): dx=7, dy=21
 Repositioned mouse to T9 before zoom (x=1950, y=850)
 Clicked to focus window before zoom (post-alignment)
 Zoomed out by configured amount
-Searching for p1 in Q8-Q9 with trim v=20.00% h=0.00%
-Found unlocked planet icon for p1
-Closed planet tab for p1
-Clicked locked planet icon for p1 at (x=1638, y=786)
-resources tab opened, window confirmed
-Resources interface check passed
-Confirmed copper is autoselling
-Resources window closed
-Enabled auto-sell hold click for ore: copper
-Searching for p2 in R8-R8 with trim v=0.00% h=0.00%
-Unlocked planet icon not found for p2
-Clicked locked planet icon for p2 at (x=1750, y=749)
-Clicked resources icon but could not verify resource window
-Warning: resources interface check failed
-Could not open resources tab for ore sell: iron
-resources tab opened, window confirmed
-Resources interface check passed
-Searching for p3 in R10-S11 with trim v=10.00% h=10.00%
-Planet icon not found: p3
-Searching for p4 in P11-Q11 with trim v=0.00% h=10.00%
-Planet icon not found: p4
-resources tab opened, window confirmed
-Resources interface check passed
-Ore icon not found: lead
+Searching for unlocked p1 in Q8-Q9 with trim v=20.00% h=0.00%
+Opened unlocked planet icon for p1 at (x=1637, y=788)
+
+Monitoring currency every 5 seconds in region: (1200, 50, 300, 100)
+Press 'q' to exit.
+Saving OCR crops to bot_program/search_screenshots
+Initializing OCR reader (first run may take a moment)...
+Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+Cash: $411,640
+Galaxy value: $495,260
 Exit hotkey detected ('q'). Exiting program...

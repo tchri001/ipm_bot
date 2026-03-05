@@ -17,6 +17,9 @@ from config import get_planet_search_settings, load_runtime_config, set_planet_s
 from setup import game_window_setup, setup_game_log
 
 
+PLANET_MATCH_CONFIDENCE = 0.65
+
+
 def open_resources_tab(interface_search_start, interface_search_end):
     """Open and verify the resources tab."""
     resources_open = open_resources_interface(
@@ -364,7 +367,7 @@ def unlock_planet(planet):
     detection = find_template_match(
         template_path=template_path,
         search_region=trimmed_region,
-        confidence=0.75,
+        confidence=PLANET_MATCH_CONFIDENCE,
         screenshot_label=f'planet_{planet_code}',
     )
 
@@ -403,7 +406,7 @@ def unlock_planet(planet):
     unlocked_detection = find_template_match(
         template_path=unlocked_template_path,
         search_region=trimmed_region,
-        confidence=0.75,
+        confidence=PLANET_MATCH_CONFIDENCE,
         screenshot_label=f'planet_{planet_code}',
     )
 
@@ -413,59 +416,40 @@ def unlock_planet(planet):
             '',
             '',
             (
-                f'planet={planet_code};template={unlocked_template_path};region={start_search_cell}-{end_search_cell};'
+                f'planet={planet_code};template={unlocked_template_path};'
+                f'region={start_search_cell}-{end_search_cell};'
                 f'status=unlocked_found;score={float(unlocked_detection["score"]):.4f};'
                 f'center_x={int(unlocked_detection["center_x"])};center_y={int(unlocked_detection["center_y"])}'
             )
         )
         print(f"Found unlocked planet icon for {planet_code}")
-
-        close_tab_region = get_grid_region('S6', 'V6')
-        close_tab_template_path = 'config/icons/planets/planet_tab.png'
-        if close_tab_region is None:
+        close_tab_detection = close_planet(planet_code)
+        if close_tab_detection is not None:
             log_input_event(
                 'planet_search',
                 '',
                 '',
-                f'planet={planet_code};template={close_tab_template_path};status=close_tab_region_error;region=S6-V6'
+                (
+                    f'planet={planet_code};template=config/icons/planets/planet_tab.png;'
+                    'status=planet_tab_closed;'
+                    f'center_x={int(close_tab_detection["center_x"])};center_y={int(close_tab_detection["center_y"])}'
+                )
             )
-            print("Could not resolve close tab region S6-V6")
         else:
-            close_tab_detection = find_template_match(
-                template_path=close_tab_template_path,
-                search_region=close_tab_region,
-                confidence=0.75,
-                screenshot_label=f'planet_{planet_code}',
+            log_input_event(
+                'planet_search',
+                '',
+                '',
+                f'planet={planet_code};template=config/icons/planets/planet_tab.png;status=planet_tab_not_found;region=S6-V6'
             )
-            if close_tab_detection is not None:
-                close_x = int(close_tab_detection['center_x'])
-                close_y = int(close_tab_detection['center_y'])
-                pyautogui.moveTo(close_x, close_y, duration=0.1)
-                log_input_event('mouse_move', '', '', f'x={close_x};y={close_y};target=planet_tab;phase=unlock_planet_close_tab')
-                pyautogui.click(close_x, close_y)
-                log_input_event('mouse_click', '', '', f'x={close_x};y={close_y};button=left;target=planet_tab;phase=unlock_planet_close_tab')
-                log_input_event(
-                    'planet_search',
-                    '',
-                    '',
-                    f'planet={planet_code};template={close_tab_template_path};status=planet_tab_closed;center_x={close_x};center_y={close_y}'
-                )
-                print(f"Closed planet tab for {planet_code}")
-            else:
-                log_input_event(
-                    'planet_search',
-                    '',
-                    '',
-                    f'planet={planet_code};template={close_tab_template_path};status=planet_tab_not_found;region=S6-V6'
-                )
-                print(f"Could not find planet tab close icon for {planet_code}")
     else:
         log_input_event(
             'planet_search',
             '',
             '',
             (
-                f'planet={planet_code};template={unlocked_template_path};region={start_search_cell}-{end_search_cell};'
+                f'planet={planet_code};template={unlocked_template_path};'
+                f'region={start_search_cell}-{end_search_cell};'
                 'status=unlocked_not_found'
             )
         )
@@ -473,6 +457,160 @@ def unlock_planet(planet):
 
     print(f"Clicked locked planet icon for {planet_code} at (x={center_x}, y={center_y})")
     return detection
+
+
+def open_planet(planet):
+    planet_code = str(planet).strip().lower()
+    template_path = f'config/icons/planets/unlocked/{planet_code}.png'
+
+    planet_settings = get_planet_search_settings(planet_code)
+    start_search_cell = planet_settings['start_grid']
+    end_search_cell = planet_settings['end_grid']
+    vertical_trim_ratio = planet_settings['vertical_trim_ratio'] if planet_settings['vertical_trim_ratio'] is not None else 0.0
+    horizontal_trim_ratio = planet_settings['horizontal_trim_ratio'] if planet_settings['horizontal_trim_ratio'] is not None else 0.0
+
+    if start_search_cell is None or end_search_cell is None:
+        message = (
+            f"missing planet region in config for {planet_code}; "
+            "expected planet_regions.<planet>.start_grid and end_grid"
+        )
+        print(message)
+        log_input_event('planet_open', '', '', f'planet={planet_code};status=config_region_missing')
+        return None
+
+    search_region = get_grid_region(start_search_cell, end_search_cell)
+    if search_region is None:
+        print(f"Could not resolve planet search region: {start_search_cell} to {end_search_cell}")
+        log_input_event(
+            'planet_open',
+            '',
+            '',
+            (
+                f'planet={planet_code};template={template_path};region={start_search_cell}-{end_search_cell};'
+                'status=region_error'
+            )
+        )
+        return None
+
+    x, y, width, height = search_region
+    vertical_percent = max(0.0, min(49.0, float(vertical_trim_ratio)))
+    horizontal_percent = max(0.0, min(49.0, float(horizontal_trim_ratio)))
+
+    trim_y = int(height * (vertical_percent / 100.0))
+    trim_x = int(width * (horizontal_percent / 100.0))
+    trimmed_region = (
+        x + trim_x,
+        y + trim_y,
+        max(1, width - (trim_x * 2)),
+        max(1, height - (trim_y * 2)),
+    )
+
+    log_input_event(
+        'planet_open',
+        '',
+        '',
+        (
+            f'planet={planet_code};template={template_path};region={start_search_cell}-{end_search_cell};'
+            f'raw_region=x={x};y={y};w={width};h={height};'
+            f'trimmed_region=x={trimmed_region[0]};y={trimmed_region[1]};w={trimmed_region[2]};h={trimmed_region[3]};'
+            f'vertical_trim_percent={vertical_percent:.2f};horizontal_trim_percent={horizontal_percent:.2f};status=start'
+        )
+    )
+    print(
+        f"Searching for unlocked {planet_code} in {start_search_cell}-{end_search_cell} "
+        f"with trim v={vertical_percent:.2f}% h={horizontal_percent:.2f}%"
+    )
+
+    detection = find_template_match(
+        template_path=template_path,
+        search_region=trimmed_region,
+        confidence=PLANET_MATCH_CONFIDENCE,
+        screenshot_label=f'planet_open_{planet_code}',
+    )
+
+    if detection is None:
+        log_input_event(
+            'planet_open',
+            '',
+            '',
+            (
+                f'planet={planet_code};template={template_path};region={start_search_cell}-{end_search_cell};'
+                'status=not_found'
+            )
+        )
+        print(f"Unlocked planet icon not found: {planet_code}")
+        return None
+
+    center_x = int(detection['center_x'])
+    center_y = int(detection['center_y'])
+    log_input_event(
+        'planet_open',
+        '',
+        '',
+        (
+            f'planet={planet_code};template={template_path};region={start_search_cell}-{end_search_cell};'
+            f'status=found;score={float(detection["score"]):.4f};center_x={center_x};center_y={center_y}'
+        )
+    )
+
+    pyautogui.moveTo(center_x, center_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={center_x};y={center_y};target={planet_code};phase=open_planet')
+    pyautogui.click(center_x, center_y)
+    log_input_event('mouse_click', '', '', f'x={center_x};y={center_y};button=left;target={planet_code};phase=open_planet')
+
+    print(f"Opened unlocked planet icon for {planet_code} at (x={center_x}, y={center_y})")
+    return detection
+
+
+def close_planet(planet):
+    planet_code = str(planet).strip().lower()
+    close_tab_region = get_grid_region('S6', 'V6')
+    close_tab_template_path = 'config/icons/planets/planet_tab.png'
+
+    if close_tab_region is None:
+        log_input_event(
+            'planet_close',
+            '',
+            '',
+            f'planet={planet_code};template={close_tab_template_path};status=close_tab_region_error;region=S6-V6'
+        )
+        print("Could not resolve close tab region S6-V6")
+        return None
+
+    close_tab_detection = find_template_match(
+        template_path=close_tab_template_path,
+        search_region=close_tab_region,
+        confidence=0.75,
+        screenshot_label=f'planet_close_{planet_code}',
+    )
+
+    if close_tab_detection is None:
+        log_input_event(
+            'planet_close',
+            '',
+            '',
+            f'planet={planet_code};template={close_tab_template_path};status=planet_tab_not_found;region=S6-V6'
+        )
+        print(f"Could not find planet tab close icon for {planet_code}")
+        return None
+
+    close_x = int(close_tab_detection['center_x'])
+    close_y = int(close_tab_detection['center_y'])
+    pyautogui.moveTo(close_x, close_y, duration=0.1)
+    log_input_event('mouse_move', '', '', f'x={close_x};y={close_y};target=planet_tab;phase=close_planet')
+    pyautogui.click(close_x, close_y)
+    log_input_event('mouse_click', '', '', f'x={close_x};y={close_y};button=left;target=planet_tab;phase=close_planet')
+    log_input_event(
+        'planet_close',
+        '',
+        '',
+        (
+            f'planet={planet_code};template={close_tab_template_path};status=planet_tab_closed;'
+            f'center_x={close_x};center_y={close_y}'
+        )
+    )
+    print(f"Closed planet tab for {planet_code}")
+    return close_tab_detection
 
 
 def sell_ores(ore_name, taskbar_search_start_grid, taskbar_search_end_grid):
@@ -652,70 +790,15 @@ def stat_upgrade(planet, stat):
     print(start_message)
     log_input_event('stat_upgrade', '', '', start_message)
 
-    planet_template_path = f'config/icons/planets/unlocked/{planet_code}.png'
-    planet_settings = get_planet_search_settings(planet_code)
-    planet_search_start_grid = planet_settings['start_grid'] or 'M4'
-    planet_search_end_grid = planet_settings['end_grid'] or 'V15'
-
-    planet_search_region = get_grid_region(planet_search_start_grid, planet_search_end_grid)
-    if planet_search_region is None:
-        region_error_message = (
-            f"could not resolve planet search region {planet_search_start_grid}-{planet_search_end_grid}"
-        )
-        print(region_error_message)
-        log_input_event('stat_upgrade', '', '', region_error_message)
-        return False
-
-    px, py, pwidth, pheight = planet_search_region
-    vertical_trim_ratio = planet_settings['vertical_trim_ratio'] if planet_settings['vertical_trim_ratio'] is not None else 0.0
-    horizontal_trim_ratio = planet_settings['horizontal_trim_ratio'] if planet_settings['horizontal_trim_ratio'] is not None else 0.0
-    vertical_percent = max(0.0, min(49.0, float(vertical_trim_ratio)))
-    horizontal_percent = max(0.0, min(49.0, float(horizontal_trim_ratio)))
-
-    trim_y = int(pheight * (vertical_percent / 100.0))
-    trim_x = int(pwidth * (horizontal_percent / 100.0))
-    planet_search_region_trimmed = (
-        px + trim_x,
-        py + trim_y,
-        max(1, pwidth - (trim_x * 2)),
-        max(1, pheight - (trim_y * 2)),
-    )
-
-    log_input_event(
-        'stat_upgrade',
-        '',
-        '',
-        (
-            f'planet={planet_code};status=planet_search_region;'
-            f'raw_region=x={px};y={py};w={pwidth};h={pheight};'
-            f'trimmed_region=x={planet_search_region_trimmed[0]};y={planet_search_region_trimmed[1]};w={planet_search_region_trimmed[2]};h={planet_search_region_trimmed[3]};'
-            f'vertical_trim_percent={vertical_percent:.2f};horizontal_trim_percent={horizontal_percent:.2f}'
-        )
-    )
-
-    planet_search_message = f"searching for planet {planet_code}"
+    planet_search_message = f"opening unlocked planet {planet_code}"
     print(planet_search_message)
     log_input_event('stat_upgrade', '', '', planet_search_message)
-    planet_detection = find_template_match(
-        template_path=planet_template_path,
-        search_region=planet_search_region_trimmed,
-        confidence=0.75,
-    )
+    planet_detection = open_planet(planet_code)
     if planet_detection is None:
-        not_found_message = f"planet not found: {planet_code}"
+        not_found_message = f"unlocked planet not found: {planet_code}"
         print(not_found_message)
         log_input_event('stat_upgrade', '', '', not_found_message)
         return False
-
-    found_open_message = f"searching for planet {planet_code}, found planet {planet_code}, opening planet {planet_code}"
-    print(found_open_message)
-    log_input_event('stat_upgrade', '', '', found_open_message)
-    planet_x = int(planet_detection['center_x'])
-    planet_y = int(planet_detection['center_y'])
-    pyautogui.moveTo(planet_x, planet_y, duration=0.1)
-    log_input_event('mouse_move', '', '', f'x={planet_x};y={planet_y};target={planet_code};phase=stat_upgrade_open_planet')
-    pyautogui.click(planet_x, planet_y)
-    log_input_event('mouse_click', '', '', f'x={planet_x};y={planet_y};button=left;target={planet_code};phase=stat_upgrade_open_planet')
     time.sleep(0.2)
 
     stat_template_path = f'config/icons/planets/stats/{stat_code}.png'
@@ -757,31 +840,12 @@ def stat_upgrade(planet, stat):
     close_message = "closing planet tab"
     print(close_message)
     log_input_event('stat_upgrade', '', '', close_message)
-    close_tab_region = get_grid_region('S6', 'V6')
-    close_tab_template_path = 'config/icons/planets/planet_tab.png'
-    if close_tab_region is None:
-        close_region_error = "could not resolve close tab region S6-V6"
-        print(close_region_error)
-        log_input_event('stat_upgrade', '', '', close_region_error)
-        return False
-
-    close_tab_detection = find_template_match(
-        template_path=close_tab_template_path,
-        search_region=close_tab_region,
-        confidence=0.75,
-    )
+    close_tab_detection = close_planet(planet_code)
     if close_tab_detection is None:
         close_not_found = "planet tab close icon not found"
         print(close_not_found)
         log_input_event('stat_upgrade', '', '', close_not_found)
         return False
-
-    close_x = int(close_tab_detection['center_x'])
-    close_y = int(close_tab_detection['center_y'])
-    pyautogui.moveTo(close_x, close_y, duration=0.1)
-    log_input_event('mouse_move', '', '', f'x={close_x};y={close_y};target=planet_tab;phase=stat_upgrade_close_tab')
-    pyautogui.click(close_x, close_y)
-    log_input_event('mouse_click', '', '', f'x={close_x};y={close_y};button=left;target=planet_tab;phase=stat_upgrade_close_tab')
     return True
 
 
@@ -837,7 +901,8 @@ def run_gameplay_loop(
     Gameplay logic starts here.
     Setup/calibration should be completed before calling this function.
     """
-    
+    open_planet("p1")
+    """
     unlock_planet("p1")
     time.sleep(0.5)
     sell_ores("copper", taskbar_search_start_grid, taskbar_search_end_grid)
@@ -859,6 +924,7 @@ def run_gameplay_loop(
 
     for planet in ['p1', 'p2', 'p3', 'p4']:
         upgrade(planet)
+    """
 
     #Planet search regions/trims come from config/ipm_config.json -> planet_regions.
 

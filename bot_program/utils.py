@@ -63,24 +63,28 @@ def _sanitize_filename_part(value):
     return re.sub(r'[^a-zA-Z0-9._-]+', '_', str(value))
 
 
-def _save_template_search_screenshot(screenshot, template_path, search_region, debug_dir=_SEARCH_DEBUG_DIR_NAME):
+def _save_template_search_screenshot(screenshot, template_path, search_region, debug_dir=_SEARCH_DEBUG_DIR_NAME, label=None):
     output_dir = _build_debug_output_dir(debug_dir)
     if output_dir is None:
         return None
 
     template_name = _sanitize_filename_part(os.path.splitext(os.path.basename(template_path))[0])
+    label_part = ''
+    if label:
+        label_part = f"_{_sanitize_filename_part(label)}"
+
     if search_region is None:
-        filename = f"search_{template_name}_full_screen_latest.png"
+        filename = f"search_{template_name}{label_part}_full_screen_latest.png"
     else:
         x, y, width, height = search_region
-        filename = f"search_{template_name}_x{x}_y{y}_w{width}_h{height}_latest.png"
+        filename = f"search_{template_name}{label_part}_x{x}_y{y}_w{width}_h{height}_latest.png"
 
     output_path = os.path.join(output_dir, filename)
     screenshot.save(output_path)
     return output_path
 
 
-def _find_template_match(template_path, search_region=None, confidence=0.75):
+def _find_template_match(template_path, search_region=None, confidence=0.75, screenshot_label=None):
     """Find a template and return center/score details or None if not found."""
     try:
         if search_region is None:
@@ -113,6 +117,7 @@ def _find_template_match(template_path, search_region=None, confidence=0.75):
             template_path=template_path,
             search_region=search_region,
             debug_dir=_SEARCH_DEBUG_DIR_NAME,
+            label=screenshot_label,
         )
         screenshot_np = np.array(screenshot)
         screenshot_gray = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2GRAY)
@@ -345,12 +350,13 @@ def _find_template_match_brightness(template_path, search_region=None, confidenc
         return None
 
 
-def find_template_match(template_path, search_region=None, confidence=0.75):
+def find_template_match(template_path, search_region=None, confidence=0.75, screenshot_label=None):
     """Public wrapper for template matching with shared logging behavior."""
     return _find_template_match(
         template_path=template_path,
         search_region=search_region,
         confidence=confidence,
+        screenshot_label=screenshot_label,
     )
 
 

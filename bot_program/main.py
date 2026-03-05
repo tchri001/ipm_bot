@@ -392,6 +392,7 @@ def unlock_planet(
         template_path=template_path,
         search_region=trimmed_region,
         confidence=0.75,
+        screenshot_label=f'planet_{planet_code}',
     )
 
     if detection is None:
@@ -430,6 +431,7 @@ def unlock_planet(
         template_path=unlocked_template_path,
         search_region=trimmed_region,
         confidence=0.75,
+        screenshot_label=f'planet_{planet_code}',
     )
 
     if unlocked_detection is not None:
@@ -460,6 +462,7 @@ def unlock_planet(
                 template_path=close_tab_template_path,
                 search_region=close_tab_region,
                 confidence=0.75,
+                screenshot_label=f'planet_{planet_code}',
             )
             if close_tab_detection is not None:
                 close_x = int(close_tab_detection['center_x'])
@@ -1108,7 +1111,7 @@ def run_gameplay_loop(
     """
 
     #open_resources_tab(taskbar_search_start_grid, taskbar_search_end_grid)
-    unlock_planet("R10","S11","p3",10,10)
+    #unlock_planet("R10","S11","p3",10,10)q
     time.sleep(10)
     upgrade("p3")
 
@@ -1153,7 +1156,7 @@ if __name__ == "__main__":
     setup_game_log(game_log_path)
     runtime_config = load_runtime_config(base_dir)
     
-    setup = False
+    setup = True
     if setup == True:
         game_window_setup(
             base_dir=base_dir,

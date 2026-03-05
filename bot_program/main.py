@@ -1,11 +1,11 @@
 import keyboard
 import os
-import shutil
 import threading
 import time
 import pyautogui
 from utils import (
     _apply_value_stability_guard,
+    directory_reset,
     start_exit_hotkey_listener,
     open_resources_interface,
     find_template_match,
@@ -965,21 +965,10 @@ if __name__ == "__main__":
     start_exit_hotkey_listener()
     base_dir = os.path.dirname(os.path.abspath(__file__))
     search_screenshots_dir = os.path.join(base_dir, 'search_screenshots')
-    try:
-        if os.path.exists(search_screenshots_dir):
-            shutil.rmtree(search_screenshots_dir)
-        os.makedirs(search_screenshots_dir, exist_ok=True)
-        print(f"Reset search screenshot directory: {search_screenshots_dir}")
-    except Exception as e:
-        print(f"Warning: could not reset search screenshot directory: {e}")
+    directory_reset(search_screenshots_dir, label='search screenshot directory')
 
     game_log_path = os.path.join(base_dir, 'game_log.txt')
-    try:
-        if os.path.exists(game_log_path):
-            os.remove(game_log_path)
-            print(f"Reset game log file: {game_log_path}")
-    except Exception as e:
-        print(f"Warning: could not reset game log file: {e}")
+    directory_reset(game_log_path, label='game log file', is_file=True)
 
     setup_game_log(game_log_path)
     runtime_config = load_runtime_config(base_dir)

@@ -20,7 +20,7 @@ opening unlocked planet p1
 Initializing OCR reader (first run may take a moment)...
 Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
 Searching for unlocked p1 in Q8-Q9 with trim v=20.00% h=0.00%
-Opened unlocked planet icon for p1 at (x=1635, y=784)
+Opened unlocked planet icon for p1 at (x=1631, y=777)
 searching for stat mining_rate
 searching for stat mining_rate, found stat mining_rate, moving right 400px, moving down 100px
 clicking 1 time, upgrade complete
@@ -29,20 +29,20 @@ Closed planet tab for p1
 upgrading planet p1, stat ship_speed
 opening unlocked planet p1
 Searching for unlocked p1 in Q8-Q9 with trim v=20.00% h=0.00%
-Opened unlocked planet icon for p1 at (x=1635, y=784)
+Opened unlocked planet icon for p1 at (x=1631, y=777)
 searching for stat ship_speed
 searching for stat ship_speed, found stat ship_speed, moving right 400px, moving down 100px
 clicking 1 time, upgrade complete
 closing planet tab
 C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
   super().__init__(loader)
-Cash: $820,410
+Cash: $2,710,000
 Closed planet tab for p1
 upgrading planet p1, stat cargo
 opening unlocked planet p1
 Searching for unlocked p1 in Q8-Q9 with trim v=20.00% h=0.00%
-Galaxy value: $1,000,000
-Opened unlocked planet icon for p1 at (x=1635, y=785)
+Galaxy value: $3,170,000
+Opened unlocked planet icon for p1 at (x=1631, y=778)
 searching for stat cargo
 searching for stat cargo, found stat cargo, moving right 400px, moving down 100px
 clicking 1 time, upgrade complete
@@ -51,36 +51,22 @@ Closed planet tab for p1
 upgrading planet p2, stat mining_rate
 opening unlocked planet p2
 Searching for unlocked p2 in R8-R8 with trim v=0.00% h=0.00%
-Opened unlocked planet icon for p2 at (x=1747, y=747)
-searching for stat mining_rate
-searching for stat mining_rate, found stat mining_rate, moving right 400px, moving down 100px
-clicking 1 time, upgrade complete
-closing planet tab
-Closed planet tab for p2
+Unlocked planet icon not found: p2
+unlocked planet not found: p2
 upgrading planet p2, stat ship_speed
 opening unlocked planet p2
 Searching for unlocked p2 in R8-R8 with trim v=0.00% h=0.00%
-Opened unlocked planet icon for p2 at (x=1747, y=747)
-searching for stat ship_speed
-searching for stat ship_speed, found stat ship_speed, moving right 400px, moving down 100px
-clicking 1 time, upgrade complete
-closing planet tab
-Cash: $820,410
-Closed planet tab for p2
+Unlocked planet icon not found: p2
+unlocked planet not found: p2
 upgrading planet p2, stat cargo
 opening unlocked planet p2
 Searching for unlocked p2 in R8-R8 with trim v=0.00% h=0.00%
-Galaxy value: $1,010,000
-Opened unlocked planet icon for p2 at (x=1747, y=747)
-searching for stat cargo
-searching for stat cargo, found stat cargo, moving right 400px, moving down 100px
-clicking 1 time, upgrade complete
-closing planet tab
-Closed planet tab for p2
+Unlocked planet icon not found: p2
+unlocked planet not found: p2
 upgrading planet p3, stat mining_rate
 opening unlocked planet p3
 Searching for unlocked p3 in R10-S11 with trim v=10.00% h=10.00%
-Opened unlocked planet icon for p3 at (x=1782, y=1007)
+Opened unlocked planet icon for p3 at (x=1786, y=1013)
 searching for stat mining_rate
 searching for stat mining_rate, found stat mining_rate, moving right 400px, moving down 100px
 clicking 1 time, upgrade complete
@@ -89,16 +75,18 @@ Closed planet tab for p3
 upgrading planet p3, stat ship_speed
 opening unlocked planet p3
 Searching for unlocked p3 in R10-S11 with trim v=10.00% h=10.00%
-Opened unlocked planet icon for p3 at (x=1782, y=1008)
+Opened unlocked planet icon for p3 at (x=1786, y=1013)
 searching for stat ship_speed
 searching for stat ship_speed, found stat ship_speed, moving right 400px, moving down 100px
+Cash: $2,580,000
 clicking 1 time, upgrade complete
 closing planet tab
+Galaxy value: $3,190,000
 Closed planet tab for p3
 upgrading planet p3, stat cargo
 opening unlocked planet p3
 Searching for unlocked p3 in R10-S11 with trim v=10.00% h=10.00%
-Opened unlocked planet icon for p3 at (x=1782, y=1008)
+Opened unlocked planet icon for p3 at (x=1786, y=1012)
 searching for stat cargo
 searching for stat cargo, found stat cargo, moving right 400px, moving down 100px
 clicking 1 time, upgrade complete
@@ -107,20 +95,31 @@ Closed planet tab for p3
 upgrading planet p4, stat mining_rate
 opening unlocked planet p4
 Searching for unlocked p4 in P11-Q11 with trim v=0.00% h=10.00%
-Unlocked planet icon not found: p4
-unlocked planet not found: p4
+Opened unlocked planet icon for p4 at (x=1562, y=1043)
+searching for stat mining_rate
+searching for stat mining_rate, found stat mining_rate, moving right 400px, moving down 100px
+clicking 1 time, upgrade complete
+closing planet tab
+Closed planet tab for p4
 upgrading planet p4, stat ship_speed
 opening unlocked planet p4
 Searching for unlocked p4 in P11-Q11 with trim v=0.00% h=10.00%
-Unlocked planet icon not found: p4
-unlocked planet not found: p4
+Opened unlocked planet icon for p4 at (x=1562, y=1043)
+searching for stat ship_speed
+searching for stat ship_speed, found stat ship_speed, moving right 400px, moving down 100px
+clicking 1 time, upgrade complete
+closing planet tab
+Closed planet tab for p4
 upgrading planet p4, stat cargo
 opening unlocked planet p4
 Searching for unlocked p4 in P11-Q11 with trim v=0.00% h=10.00%
-Unlocked planet icon not found: p4
-unlocked planet not found: p4
-Cash: $808,860
-Galaxy value: $1,020,000
-Cash: $819,960
-Galaxy value: $1,040,000
+Opened unlocked planet icon for p4 at (x=1562, y=1043)
+searching for stat cargo
+searching for stat cargo, found stat cargo, moving right 400px, moving down 100px
+clicking 1 time, upgrade complete
+closing planet tab
+Closed planet tab for p4
+cash stability guard: held suspicious jump from $2,580,000 to $235,000,000; waiting for confirmation
+Cash: $2,580,000
+Galaxy value: $3,200,000
 Exit hotkey detected ('q'). Exiting program...

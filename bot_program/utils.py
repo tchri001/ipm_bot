@@ -1,5 +1,6 @@
 import subprocess
 import os
+import shutil
 import json
 import threading
 import keyboard
@@ -69,6 +70,31 @@ def start_exit_hotkey_listener():
     listener_thread.start()
     _EXIT_LISTENER_STARTED = True
     print("Exit hotkey listener started (press 'q' any time to exit)")
+
+
+def directory_reset(path, label='directory', is_file=False):
+    """Reset a directory or file path, returning True on success."""
+    try:
+        if os.path.exists(path):
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+
+        if is_file:
+            parent_dir = os.path.dirname(path)
+            if parent_dir:
+                os.makedirs(parent_dir, exist_ok=True)
+            with open(path, 'w', encoding='utf-8'):
+                pass
+        else:
+            os.makedirs(path, exist_ok=True)
+
+        print(f"Reset {label}: {path}")
+        return True
+    except Exception as e:
+        print(f"Warning: could not reset {label}: {e}")
+        return False
 
 
 def _safe_float(value):

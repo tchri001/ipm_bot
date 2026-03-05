@@ -1,6 +1,8 @@
 import subprocess
 import os
 import json
+import threading
+import keyboard
 import pygetwindow as gw
 import time
 import pyautogui
@@ -20,6 +22,7 @@ _AD_BANNER_CACHE = {
     'present': False,
     'offset_x': 0,
 }
+_EXIT_LISTENER_STARTED = False
 
 
 def set_input_log_path(log_path):
@@ -39,6 +42,103 @@ def log_input_event(event_type, key='', scan_code='', details=''):
             log_file.write(f"{timestamp},{event_type},{key},{scan_code},{safe_details}\n")
     except OSError:
         pass
+
+
+def _exit_hotkey_worker():
+    while True:
+        try:
+            if keyboard.is_pressed('q'):
+                print("Exit hotkey detected ('q'). Exiting program...")
+                os._exit(0)
+            time.sleep(0.05)
+        except Exception as e:
+            print(f"Warning: exit hotkey listener error: {e}")
+            time.sleep(0.5)
+
+
+def start_exit_hotkey_listener():
+    global _EXIT_LISTENER_STARTED
+    if _EXIT_LISTENER_STARTED:
+        return
+
+    listener_thread = threading.Thread(
+        target=_exit_hotkey_worker,
+        name='exit_hotkey_listener',
+        daemon=True,
+    )
+    listener_thread.start()
+    _EXIT_LISTENER_STARTED = True
+    print("Exit hotkey listener started (press 'q' any time to exit)")
+
+
+def _safe_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _normalize_grid_cell(value):
+    text = str(value).strip().upper() if value is not None else ''
+    if not text or text == 'XX':
+        return None
+    return text
+
+
+def _apply_value_stability_guard(metric_name, observed_value, stability_state, jump_factor=10.0):
+    if observed_value is None:
+        return None
+
+    last_value = stability_state.get('last')
+    pending_value = stability_state.get('pending')
+
+    if last_value is None:
+        stability_state['last'] = int(observed_value)
+        stability_state['pending'] = None
+        return int(observed_value)
+
+    smaller = max(1, min(int(last_value), int(observed_value)))
+    larger = max(int(last_value), int(observed_value))
+    ratio = float(larger) / float(smaller)
+
+    if ratio <= float(jump_factor):
+        stability_state['last'] = int(observed_value)
+        stability_state['pending'] = None
+        return int(observed_value)
+
+    if pending_value is not None and int(pending_value) == int(observed_value):
+        stability_state['last'] = int(observed_value)
+        stability_state['pending'] = None
+        print(
+            f"{metric_name} stability guard: accepted confirmed jump "
+            f"from ${int(last_value):,} to ${int(observed_value):,}"
+        )
+        log_input_event(
+            'value_guard',
+            '',
+            '',
+            (
+                f'metric={metric_name};status=accepted_confirmed_jump;'
+                f'from={int(last_value)};to={int(observed_value)};ratio={ratio:.2f}'
+            )
+        )
+        return int(observed_value)
+
+    stability_state['pending'] = int(observed_value)
+    print(
+        f"{metric_name} stability guard: held suspicious jump "
+        f"from ${int(last_value):,} to ${int(observed_value):,}; waiting for confirmation"
+    )
+    log_input_event(
+        'value_guard',
+        '',
+        '',
+        (
+            f'metric={metric_name};status=held_suspicious_jump;'
+            f'from={int(last_value)};to={int(observed_value)};ratio={ratio:.2f}'
+        )
+    )
+    return int(last_value)
 
 
 def _resolve_local_path(path_value):

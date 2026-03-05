@@ -1,4 +1,6 @@
 import os
+import sys
+import atexit
 
 import pyautogui
 
@@ -12,6 +14,36 @@ from utils import (
     zoom_out_configured_amount,
     zoom_to_max,
 )
+
+
+class _StreamTee:
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, data):
+        for stream in self._streams:
+            stream.write(data)
+        return len(data)
+
+    def flush(self):
+        for stream in self._streams:
+            stream.flush()
+
+
+def setup_game_log(log_path):
+    log_file = open(log_path, 'a', encoding='utf-8', buffering=1)
+    sys.stdout = _StreamTee(sys.__stdout__, log_file)
+    sys.stderr = _StreamTee(sys.__stderr__, log_file)
+
+    def _close_log_file():
+        try:
+            log_file.flush()
+            log_file.close()
+        except OSError:
+            pass
+
+    atexit.register(_close_log_file)
+    print(f"Logging console output to: {log_path}")
 
 
 def game_window_setup(base_dir, runtime_config, run_setup=True):

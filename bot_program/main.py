@@ -1,13 +1,11 @@
 import keyboard
-import json
 import os
 import shutil
 import time
-import sys
-import atexit
-import threading
 import pyautogui
 from utils import (
+    _apply_value_stability_guard,
+    start_exit_hotkey_listener,
     open_resources_interface,
     find_template_match,
     find_template_match_brightness,
@@ -15,102 +13,8 @@ from utils import (
     get_grid_region,
     log_input_event,
 )
-from setup import game_window_setup
-
-
-class _StreamTee:
-    def __init__(self, *streams):
-        self._streams = streams
-
-    def write(self, data):
-        for stream in self._streams:
-            stream.write(data)
-        return len(data)
-
-    def flush(self):
-        for stream in self._streams:
-            stream.flush()
-
-
-_EXIT_LISTENER_STARTED = False
-PLANET_SEARCH_CONFIG = {}
-
-
-def _exit_hotkey_worker():
-    while True:
-        try:
-            if keyboard.is_pressed('q'):
-                print("Exit hotkey detected ('q'). Exiting program...")
-                os._exit(0)
-            time.sleep(0.05)
-        except Exception as e:
-            print(f"Warning: exit hotkey listener error: {e}")
-            time.sleep(0.5)
-
-
-def start_exit_hotkey_listener():
-    global _EXIT_LISTENER_STARTED
-    if _EXIT_LISTENER_STARTED:
-        return
-
-    listener_thread = threading.Thread(
-        target=_exit_hotkey_worker,
-        name='exit_hotkey_listener',
-        daemon=True,
-    )
-    listener_thread.start()
-    _EXIT_LISTENER_STARTED = True
-    print("Exit hotkey listener started (press 'q' any time to exit)")
-
-
-def _safe_float(value):
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _normalize_grid_cell(value):
-    text = str(value).strip().upper() if value is not None else ''
-    if not text or text == 'XX':
-        return None
-    return text
-
-
-def get_planet_search_settings(planet):
-    planet_code = str(planet).strip().lower()
-    planet_entry = PLANET_SEARCH_CONFIG.get(planet_code, {})
-    if not isinstance(planet_entry, dict):
-        planet_entry = {}
-
-    start_grid = _normalize_grid_cell(planet_entry.get('start_grid'))
-    end_grid = _normalize_grid_cell(planet_entry.get('end_grid'))
-
-    vertical_trim_ratio = _safe_float(planet_entry.get('vertical_trim_ratio'))
-    horizontal_trim_ratio = _safe_float(planet_entry.get('horizontal_trim_ratio'))
-
-    return {
-        'start_grid': start_grid,
-        'end_grid': end_grid,
-        'vertical_trim_ratio': vertical_trim_ratio,
-        'horizontal_trim_ratio': horizontal_trim_ratio,
-    }
-
-
-def setup_game_log(log_path):
-    log_file = open(log_path, 'a', encoding='utf-8', buffering=1)
-    sys.stdout = _StreamTee(sys.__stdout__, log_file)
-    sys.stderr = _StreamTee(sys.__stderr__, log_file)
-
-    def _close_log_file():
-        try:
-            log_file.flush()
-            log_file.close()
-        except OSError:
-            pass
-
-    atexit.register(_close_log_file)
-    print(f"Logging console output to: {log_path}")
+from config import get_planet_search_settings, load_runtime_config, set_planet_search_config
+from setup import game_window_setup, setup_game_log
 
 
 def open_resources_tab(interface_search_start, interface_search_end):
@@ -887,62 +791,6 @@ def stat_upgrade(planet, stat):
     return True
 
 
-def _apply_value_stability_guard(metric_name, observed_value, stability_state, jump_factor=10.0):
-    if observed_value is None:
-        return None
-
-    last_value = stability_state.get('last')
-    pending_value = stability_state.get('pending')
-
-    if last_value is None:
-        stability_state['last'] = int(observed_value)
-        stability_state['pending'] = None
-        return int(observed_value)
-
-    smaller = max(1, min(int(last_value), int(observed_value)))
-    larger = max(int(last_value), int(observed_value))
-    ratio = float(larger) / float(smaller)
-
-    if ratio <= float(jump_factor):
-        stability_state['last'] = int(observed_value)
-        stability_state['pending'] = None
-        return int(observed_value)
-
-    if pending_value is not None and int(pending_value) == int(observed_value):
-        stability_state['last'] = int(observed_value)
-        stability_state['pending'] = None
-        print(
-            f"{metric_name} stability guard: accepted confirmed jump "
-            f"from ${int(last_value):,} to ${int(observed_value):,}"
-        )
-        log_input_event(
-            'value_guard',
-            '',
-            '',
-            (
-                f'metric={metric_name};status=accepted_confirmed_jump;'
-                f'from={int(last_value)};to={int(observed_value)};ratio={ratio:.2f}'
-            )
-        )
-        return int(observed_value)
-
-    stability_state['pending'] = int(observed_value)
-    print(
-        f"{metric_name} stability guard: held suspicious jump "
-        f"from ${int(last_value):,} to ${int(observed_value):,}; waiting for confirmation"
-    )
-    log_input_event(
-        'value_guard',
-        '',
-        '',
-        (
-            f'metric={metric_name};status=held_suspicious_jump;'
-            f'from={int(last_value)};to={int(observed_value)};ratio={ratio:.2f}'
-        )
-    )
-    return int(last_value)
-
-
 def value_checker(currency_region, galaxy_value_region, debug_dir_name, value_stability_state):
     currency = get_currency_value_with_visualization(
         region=currency_region,
@@ -977,193 +825,6 @@ def value_checker(currency_region, galaxy_value_region, debug_dir_name, value_st
         print(f"Galaxy value: ${galaxy_value:,}")
     else:
         print("Galaxy value: not detected")
-
-
-def load_runtime_config(base_dir):
-    ref_config_path = os.path.join(base_dir, 'config', 'ipm_config.json')
-    default_scroll_start_grid = "T9"
-    default_currency_region_start_grid = "I1"
-    default_currency_region_end_grid = "P2"
-    default_galaxy_value_region_start_grid = "M3"
-    default_galaxy_value_region_end_grid = "P4"
-    default_taskbar_search_start_grid = "M17"
-    default_taskbar_search_end_grid = "V17"
-    enable_focus_click = True  # Toggle this on/off for pre-zoom focus click
-    run_window_setup = True
-
-    grid_target = default_scroll_start_grid
-    currency_region_start_grid = default_currency_region_start_grid
-    currency_region_end_grid = default_currency_region_end_grid
-    galaxy_value_region_start_grid = default_galaxy_value_region_start_grid
-    galaxy_value_region_end_grid = default_galaxy_value_region_end_grid
-    taskbar_search_start_grid = default_taskbar_search_start_grid
-    taskbar_search_end_grid = default_taskbar_search_end_grid
-    default_planet_regions = {
-        'p1': {
-            'start_grid': 'XX',
-            'end_grid': 'XX',
-            'vertical_trim_ratio': 'XX',
-            'horizontal_trim_ratio': 'XX',
-        },
-        'p2': {
-            'start_grid': 'XX',
-            'end_grid': 'XX',
-            'vertical_trim_ratio': 'XX',
-            'horizontal_trim_ratio': 'XX',
-        },
-        'p3': {
-            'start_grid': 'XX',
-            'end_grid': 'XX',
-            'vertical_trim_ratio': 'XX',
-            'horizontal_trim_ratio': 'XX',
-        },
-        'p4': {
-            'start_grid': 'XX',
-            'end_grid': 'XX',
-            'vertical_trim_ratio': 'XX',
-            'horizontal_trim_ratio': 'XX',
-        },
-    }
-    planet_regions = dict(default_planet_regions)
-
-    config_changed = False
-    try:
-        if os.path.exists(ref_config_path):
-            with open(ref_config_path, 'r', encoding='utf-8') as config_file:
-                config_data = json.load(config_file)
-
-            config_grid = str(config_data.get('scroll_start_grid', '')).strip().upper()
-            if config_grid:
-                grid_target = config_grid
-
-            config_currency_start = str(config_data.get('currency_region_start_grid', '')).strip().upper()
-            if config_currency_start:
-                currency_region_start_grid = config_currency_start
-
-            config_currency_end = str(config_data.get('currency_region_end_grid', '')).strip().upper()
-            if config_currency_end:
-                currency_region_end_grid = config_currency_end
-
-            config_galaxy_value_start = str(config_data.get('galaxy_value_region_start_grid', '')).strip().upper()
-            if config_galaxy_value_start:
-                galaxy_value_region_start_grid = config_galaxy_value_start
-
-            config_galaxy_value_end = str(config_data.get('galaxy_value_region_end_grid', '')).strip().upper()
-            if config_galaxy_value_end:
-                galaxy_value_region_end_grid = config_galaxy_value_end
-
-            config_taskbar_start = str(config_data.get('taskbar_search_start_grid', '')).strip().upper()
-            if config_taskbar_start:
-                taskbar_search_start_grid = config_taskbar_start
-
-            config_taskbar_end = str(config_data.get('taskbar_search_end_grid', '')).strip().upper()
-            if config_taskbar_end:
-                taskbar_search_end_grid = config_taskbar_end
-
-            if 'enable_focus_click' in config_data:
-                enable_focus_click = bool(config_data.get('enable_focus_click'))
-
-            if 'run_window_setup' in config_data:
-                run_window_setup = bool(config_data.get('run_window_setup'))
-
-            config_planet_regions = config_data.get('planet_regions')
-            if isinstance(config_planet_regions, dict):
-                for planet_code, defaults in default_planet_regions.items():
-                    planet_entry = config_planet_regions.get(planet_code, {})
-                    if not isinstance(planet_entry, dict):
-                        planet_entry = {}
-                    planet_regions[planet_code] = {
-                        'start_grid': str(planet_entry.get('start_grid', defaults['start_grid'])).strip().upper(),
-                        'end_grid': str(planet_entry.get('end_grid', defaults['end_grid'])).strip().upper(),
-                        'vertical_trim_ratio': planet_entry.get('vertical_trim_ratio', defaults['vertical_trim_ratio']),
-                        'horizontal_trim_ratio': planet_entry.get('horizontal_trim_ratio', defaults['horizontal_trim_ratio']),
-                    }
-
-            if 'scroll_start_grid' not in config_data:
-                config_data['scroll_start_grid'] = default_scroll_start_grid
-                config_changed = True
-            if 'currency_region_start_grid' not in config_data:
-                config_data['currency_region_start_grid'] = default_currency_region_start_grid
-                config_changed = True
-            if 'currency_region_end_grid' not in config_data:
-                config_data['currency_region_end_grid'] = default_currency_region_end_grid
-                config_changed = True
-            if 'galaxy_value_region_start_grid' not in config_data:
-                config_data['galaxy_value_region_start_grid'] = default_galaxy_value_region_start_grid
-                config_changed = True
-            if 'galaxy_value_region_end_grid' not in config_data:
-                config_data['galaxy_value_region_end_grid'] = default_galaxy_value_region_end_grid
-                config_changed = True
-            if 'taskbar_search_start_grid' not in config_data:
-                config_data['taskbar_search_start_grid'] = default_taskbar_search_start_grid
-                config_changed = True
-            if 'taskbar_search_end_grid' not in config_data:
-                config_data['taskbar_search_end_grid'] = default_taskbar_search_end_grid
-                config_changed = True
-            if 'enable_focus_click' not in config_data:
-                config_data['enable_focus_click'] = enable_focus_click
-                config_changed = True
-            if 'run_window_setup' not in config_data:
-                config_data['run_window_setup'] = run_window_setup
-                config_changed = True
-            if 'planet_regions' not in config_data:
-                config_data['planet_regions'] = planet_regions
-                config_changed = True
-
-            if config_changed:
-                with open(ref_config_path, 'w', encoding='utf-8') as config_file:
-                    json.dump(config_data, config_file, indent=2)
-    except Exception as e:
-        print(f"Warning: could not load runtime config from ipm_config.json: {e}")
-
-    # Currency monitor region from config bounds
-    currency_region = get_grid_region(currency_region_start_grid, currency_region_end_grid)
-    if currency_region is None:
-        currency_region = (800, 0, 800, 200)
-        print("Using fallback currency region (800, 0, 800, 200)")
-
-    # Tighten region to focus on currency text only
-    # Shrink by 50px on Y sides, keep full X range
-    rx, ry, rw, rh = currency_region
-    currency_region = (rx, ry + 50, rw, max(1, rh - 100))
-
-    # Galaxy value region from config bounds, trimmed by 5% left/right, 20% top, and 35% bottom
-    galaxy_value_region = get_grid_region(galaxy_value_region_start_grid, galaxy_value_region_end_grid)
-    if galaxy_value_region is None:
-        galaxy_value_region = (1200, 200, 400, 200)
-        print("Using fallback galaxy value region (1200, 200, 400, 200)")
-    gx, gy, gw, gh = galaxy_value_region
-    galaxy_trim_x = int(gw * 0.05)
-    galaxy_trim_top = int(gh * 0.20)
-    galaxy_trim_bottom = int(gh * 0.35)
-    galaxy_value_region = (
-        gx + galaxy_trim_x,
-        gy + galaxy_trim_top,
-        max(1, gw - (galaxy_trim_x * 2)),
-        max(1, gh - galaxy_trim_top - galaxy_trim_bottom),
-    )
-
-    # Ensure debug screenshot folder exists.
-    debug_dir_name = 'search_screenshots'
-    debug_dir_path = os.path.join(base_dir, debug_dir_name)
-    os.makedirs(debug_dir_path, exist_ok=True)
-
-    return {
-        'ref_config_path': ref_config_path,
-        'grid_target': grid_target,
-        'currency_region_start_grid': currency_region_start_grid,
-        'currency_region_end_grid': currency_region_end_grid,
-        'galaxy_value_region_start_grid': galaxy_value_region_start_grid,
-        'galaxy_value_region_end_grid': galaxy_value_region_end_grid,
-        'taskbar_search_start_grid': taskbar_search_start_grid,
-        'taskbar_search_end_grid': taskbar_search_end_grid,
-        'enable_focus_click': enable_focus_click,
-        'run_window_setup': run_window_setup,
-        'planet_regions': planet_regions,
-        'currency_region': currency_region,
-        'galaxy_value_region': galaxy_value_region,
-        'debug_dir_name': debug_dir_name,
-    }
 
 
 def upgrade(planet):
@@ -1255,7 +916,7 @@ if __name__ == "__main__":
     game_log_path = os.path.join(base_dir, 'game_log.txt')
     setup_game_log(game_log_path)
     runtime_config = load_runtime_config(base_dir)
-    PLANET_SEARCH_CONFIG = runtime_config.get('planet_regions', {})
+    set_planet_search_config(runtime_config.get('planet_regions', {}))
     
     setup = True
     if setup == True:

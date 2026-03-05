@@ -8,20 +8,14 @@ import atexit
 import threading
 import pyautogui
 from utils import (
-    open_bluestacks,
-    zoom_to_max,
-    zoom_out_configured_amount,
     open_resources_interface,
     find_template_match,
     find_template_match_brightness,
     get_currency_value_with_visualization,
-    get_grid_midpoint,
     get_grid_region,
     log_input_event,
-    set_zoom_modifier_key,
-    save_reference_icon_anchor,
-    align_screen_to_reference_icon,
 )
+from setup import game_window_setup
 
 
 class _StreamTee:
@@ -1171,79 +1165,6 @@ def load_runtime_config(base_dir):
         'debug_dir_name': debug_dir_name,
     }
 
-
-def game_window_setup(base_dir, runtime_config, run_setup=True):
-    ref_config_path = runtime_config['ref_config_path']
-    grid_target = runtime_config['grid_target']
-    currency_region_start_grid = runtime_config['currency_region_start_grid']
-    currency_region_end_grid = runtime_config['currency_region_end_grid']
-    enable_focus_click = bool(runtime_config.get('enable_focus_click', True))
-
-    set_zoom_modifier_key('ctrl')
-    print("Using zoom modifier key: ctrl")
-
-    print(f"Using scroll_start_grid: {grid_target}")
-    print(f"Using currency region grid bounds: {currency_region_start_grid} -> {currency_region_end_grid}")
-
-    if run_setup:
-        # Open/focus BlueStacks
-        open_bluestacks()
-
-        # Move mouse to a grid location before any scrolling/zoom occurs
-        coords = get_grid_midpoint(grid_target)
-        if coords:
-            x, y = coords
-            try:
-                pyautogui.moveTo(x, y, duration=0.2)
-                print(f"Moved mouse to {grid_target} (x={x}, y={y})")
-                log_input_event('mouse_move', '', '', f'x={x};y={y};phase=pre_zoom_initial_focus')
-                if enable_focus_click:
-                    pyautogui.click()
-                    print("Clicked to focus window before zoom")
-                    log_input_event('mouse_click', '', '', f'x={x};y={y};button=left;phase=pre_zoom_initial_focus')
-                else:
-                    print("Focus click disabled (enable_focus_click=False)")
-            except Exception as e:
-                print(f"Could not move mouse: {e}")
-        else:
-            print(f"Could not find grid coordinates for {grid_target}")
-
-        # Zoom in before any reference-image detection/alignment.
-        zoom_to_max()
-
-        # Ensure reference icon anchor config exists (one-time calibration)
-        if not os.path.exists(ref_config_path):
-            print("Reference anchor config not found. Detecting ref_icon.png and saving anchor now...")
-            anchor_saved = save_reference_icon_anchor(template_path='config/ref_icon.png', config_path='config/ipm_config.json', confidence=0.75)
-            if anchor_saved is None:
-                print("Warning: could not detect reference icon to save anchor coordinates.")
-
-        # Startup alignment: drag map until reference icon is near saved coordinates
-        alignment_ok = align_screen_to_reference_icon(config_path='config/ipm_config.json', tolerance_px=30, max_attempts=8)
-        if not alignment_ok:
-            print("Warning: reference alignment did not converge; continuing with current position.")
-
-        # Reposition to grid target after alignment (dragging may move cursor elsewhere)
-        coords = get_grid_midpoint(grid_target)
-        if coords:
-            x, y = coords
-            try:
-                pyautogui.moveTo(x, y, duration=0.2)
-                print(f"Repositioned mouse to {grid_target} before zoom (x={x}, y={y})")
-                log_input_event('mouse_move', '', '', f'x={x};y={y};phase=pre_zoom_reposition')
-                if enable_focus_click:
-                    pyautogui.click()
-                    print("Clicked to focus window before zoom (post-alignment)")
-                    log_input_event('mouse_click', '', '', f'x={x};y={y};button=left;phase=pre_zoom_reposition')
-            except Exception as e:
-                print(f"Could not reposition mouse before zoom: {e}")
-
-        # After max-zoom alignment, zoom out to the configured working level.
-        zoom_out_configured_amount()
-    else:
-        print("Skipping game window setup actions (run_window_setup=False)")
-
-    return None
 
 def upgrade(planet):
         stat_upgrade(planet, "mining_rate")

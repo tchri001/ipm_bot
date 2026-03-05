@@ -26,5 +26,31 @@
   "confidence": 0.75,
   "saved_at": "2026-03-01T00:19:42.751798",
   "enable_focus_click": true,
-  "run_window_setup": true
+  "run_window_setup": true,
+  "planet_regions": {
+    "p1": {
+      "start_grid": "Q8",
+      "end_grid": "Q9",
+      "vertical_trim_ratio": 20,
+      "horizontal_trim_ratio": 0
+    },
+    "p2": {
+      "start_grid": "R8",
+      "end_grid": "R8",
+      "vertical_trim_ratio": 0,
+      "horizontal_trim_ratio": 0
+    },
+    "p3": {
+      "start_grid": "R10",
+      "end_grid": "S11",
+      "vertical_trim_ratio": 10,
+      "horizontal_trim_ratio": 10
+    },
+    "p4": {
+      "start_grid": "P11",
+      "end_grid": "Q11",
+      "vertical_trim_ratio": 0,
+      "horizontal_trim_ratio": 10
+    }
+  }
 }

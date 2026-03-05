@@ -350,7 +350,7 @@ def _find_template_match_brightness(template_path, search_region=None, confidenc
         return None
 
 
-def find_template_match(template_path, search_region=None, confidence=0.75, screenshot_label=None):
+def find_template_match(template_path, search_region=None, confidence=0.65, screenshot_label=None):
     """Public wrapper for template matching with shared logging behavior."""
     return _find_template_match(
         template_path=template_path,

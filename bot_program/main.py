@@ -39,6 +39,7 @@ class _StreamTee:
 
 
 _EXIT_LISTENER_STARTED = False
+PLANET_SEARCH_CONFIG = {}
 
 
 def _exit_hotkey_worker():
@@ -66,6 +67,40 @@ def start_exit_hotkey_listener():
     listener_thread.start()
     _EXIT_LISTENER_STARTED = True
     print("Exit hotkey listener started (press 'q' any time to exit)")
+
+
+def _safe_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _normalize_grid_cell(value):
+    text = str(value).strip().upper() if value is not None else ''
+    if not text or text == 'XX':
+        return None
+    return text
+
+
+def get_planet_search_settings(planet):
+    planet_code = str(planet).strip().lower()
+    planet_entry = PLANET_SEARCH_CONFIG.get(planet_code, {})
+    if not isinstance(planet_entry, dict):
+        planet_entry = {}
+
+    start_grid = _normalize_grid_cell(planet_entry.get('start_grid'))
+    end_grid = _normalize_grid_cell(planet_entry.get('end_grid'))
+
+    vertical_trim_ratio = _safe_float(planet_entry.get('vertical_trim_ratio'))
+    horizontal_trim_ratio = _safe_float(planet_entry.get('horizontal_trim_ratio'))
+
+    return {
+        'start_grid': start_grid,
+        'end_grid': end_grid,
+        'vertical_trim_ratio': vertical_trim_ratio,
+        'horizontal_trim_ratio': horizontal_trim_ratio,
+    }
 
 
 def setup_game_log(log_path):
@@ -375,6 +410,21 @@ def unlock_planet(
 ):
     planet_code = str(planet).strip().lower()
     template_path = f'config/icons/planets/locked/{planet_code}.png'
+
+    planet_settings = get_planet_search_settings(planet_code)
+    config_start_grid = planet_settings['start_grid']
+    config_end_grid = planet_settings['end_grid']
+    config_vertical_trim = planet_settings['vertical_trim_ratio']
+    config_horizontal_trim = planet_settings['horizontal_trim_ratio']
+
+    if config_start_grid is not None and config_end_grid is not None:
+        start_search_cell = config_start_grid
+        end_search_cell = config_end_grid
+
+    if config_vertical_trim is not None:
+        vertical_trim_ratio = config_vertical_trim
+    if config_horizontal_trim is not None:
+        horizontal_trim_ratio = config_horizontal_trim
 
     search_region = get_grid_region(start_search_cell, end_search_cell)
     if search_region is None:
@@ -711,12 +761,52 @@ def stat_upgrade(planet, stat):
     log_input_event('stat_upgrade', '', '', start_message)
 
     planet_template_path = f'config/icons/planets/unlocked/{planet_code}.png'
+    planet_settings = get_planet_search_settings(planet_code)
+    planet_search_start_grid = planet_settings['start_grid'] or 'M4'
+    planet_search_end_grid = planet_settings['end_grid'] or 'V15'
+
+    planet_search_region = get_grid_region(planet_search_start_grid, planet_search_end_grid)
+    if planet_search_region is None:
+        region_error_message = (
+            f"could not resolve planet search region {planet_search_start_grid}-{planet_search_end_grid}"
+        )
+        print(region_error_message)
+        log_input_event('stat_upgrade', '', '', region_error_message)
+        return False
+
+    px, py, pwidth, pheight = planet_search_region
+    vertical_trim_ratio = planet_settings['vertical_trim_ratio'] if planet_settings['vertical_trim_ratio'] is not None else 0.0
+    horizontal_trim_ratio = planet_settings['horizontal_trim_ratio'] if planet_settings['horizontal_trim_ratio'] is not None else 0.0
+    vertical_percent = max(0.0, min(49.0, float(vertical_trim_ratio)))
+    horizontal_percent = max(0.0, min(49.0, float(horizontal_trim_ratio)))
+
+    trim_y = int(pheight * (vertical_percent / 100.0))
+    trim_x = int(pwidth * (horizontal_percent / 100.0))
+    planet_search_region_trimmed = (
+        px + trim_x,
+        py + trim_y,
+        max(1, pwidth - (trim_x * 2)),
+        max(1, pheight - (trim_y * 2)),
+    )
+
+    log_input_event(
+        'stat_upgrade',
+        '',
+        '',
+        (
+            f'planet={planet_code};status=planet_search_region;'
+            f'raw_region=x={px};y={py};w={pwidth};h={pheight};'
+            f'trimmed_region=x={planet_search_region_trimmed[0]};y={planet_search_region_trimmed[1]};w={planet_search_region_trimmed[2]};h={planet_search_region_trimmed[3]};'
+            f'vertical_trim_percent={vertical_percent:.2f};horizontal_trim_percent={horizontal_percent:.2f}'
+        )
+    )
+
     planet_search_message = f"searching for planet {planet_code}"
     print(planet_search_message)
     log_input_event('stat_upgrade', '', '', planet_search_message)
     planet_detection = find_template_match(
         template_path=planet_template_path,
-        search_region=None,
+        search_region=planet_search_region_trimmed,
         confidence=0.75,
     )
     if planet_detection is None:
@@ -914,6 +1004,33 @@ def load_runtime_config(base_dir):
     galaxy_value_region_end_grid = default_galaxy_value_region_end_grid
     taskbar_search_start_grid = default_taskbar_search_start_grid
     taskbar_search_end_grid = default_taskbar_search_end_grid
+    default_planet_regions = {
+        'p1': {
+            'start_grid': 'XX',
+            'end_grid': 'XX',
+            'vertical_trim_ratio': 'XX',
+            'horizontal_trim_ratio': 'XX',
+        },
+        'p2': {
+            'start_grid': 'XX',
+            'end_grid': 'XX',
+            'vertical_trim_ratio': 'XX',
+            'horizontal_trim_ratio': 'XX',
+        },
+        'p3': {
+            'start_grid': 'XX',
+            'end_grid': 'XX',
+            'vertical_trim_ratio': 'XX',
+            'horizontal_trim_ratio': 'XX',
+        },
+        'p4': {
+            'start_grid': 'XX',
+            'end_grid': 'XX',
+            'vertical_trim_ratio': 'XX',
+            'horizontal_trim_ratio': 'XX',
+        },
+    }
+    planet_regions = dict(default_planet_regions)
 
     config_changed = False
     try:
@@ -955,6 +1072,19 @@ def load_runtime_config(base_dir):
             if 'run_window_setup' in config_data:
                 run_window_setup = bool(config_data.get('run_window_setup'))
 
+            config_planet_regions = config_data.get('planet_regions')
+            if isinstance(config_planet_regions, dict):
+                for planet_code, defaults in default_planet_regions.items():
+                    planet_entry = config_planet_regions.get(planet_code, {})
+                    if not isinstance(planet_entry, dict):
+                        planet_entry = {}
+                    planet_regions[planet_code] = {
+                        'start_grid': str(planet_entry.get('start_grid', defaults['start_grid'])).strip().upper(),
+                        'end_grid': str(planet_entry.get('end_grid', defaults['end_grid'])).strip().upper(),
+                        'vertical_trim_ratio': planet_entry.get('vertical_trim_ratio', defaults['vertical_trim_ratio']),
+                        'horizontal_trim_ratio': planet_entry.get('horizontal_trim_ratio', defaults['horizontal_trim_ratio']),
+                    }
+
             if 'scroll_start_grid' not in config_data:
                 config_data['scroll_start_grid'] = default_scroll_start_grid
                 config_changed = True
@@ -981,6 +1111,9 @@ def load_runtime_config(base_dir):
                 config_changed = True
             if 'run_window_setup' not in config_data:
                 config_data['run_window_setup'] = run_window_setup
+                config_changed = True
+            if 'planet_regions' not in config_data:
+                config_data['planet_regions'] = planet_regions
                 config_changed = True
 
             if config_changed:
@@ -1032,6 +1165,7 @@ def load_runtime_config(base_dir):
         'taskbar_search_end_grid': taskbar_search_end_grid,
         'enable_focus_click': enable_focus_click,
         'run_window_setup': run_window_setup,
+        'planet_regions': planet_regions,
         'currency_region': currency_region,
         'galaxy_value_region': galaxy_value_region,
         'debug_dir_name': debug_dir_name,
@@ -1142,7 +1276,7 @@ def run_gameplay_loop(
     
 
     #open_resources_tab(taskbar_search_start_grid, taskbar_search_end_grid)
-    #unlock_planet("R10","S11","p3",10,10)q
+    #unlock_planet("R10","S11","p3",10,10)
     time.sleep(10)
     upgrade("p3")
 
@@ -1155,7 +1289,10 @@ def run_gameplay_loop(
     for planet in ['p1', 'p2', 'p3', 'p4']:
         upgrade(planet)
     """
-    upgrade("p1")
+    upgrade("p1") 
+    #We need to pass in a grid area for this. 
+    #How best to create a planet:grid map for upgrade and unlock_planet?
+
     #research_project("management",taskbar_search_start_grid,taskbar_search_end_grid)
     #research_project("crafter",taskbar_search_start_grid,taskbar_search_end_grid)
 
@@ -1197,6 +1334,7 @@ if __name__ == "__main__":
     game_log_path = os.path.join(base_dir, 'game_log.txt')
     setup_game_log(game_log_path)
     runtime_config = load_runtime_config(base_dir)
+    PLANET_SEARCH_CONFIG = runtime_config.get('planet_regions', {})
     
     setup = True
     if setup == True:

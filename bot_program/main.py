@@ -299,30 +299,24 @@ def research_project(project_name, taskbar_search_start_grid, taskbar_search_end
     return None
 
 
-def unlock_planet(
-    start_search_cell,
-    end_search_cell,
-    planet,
-    vertical_trim_ratio=0,
-    horizontal_trim_ratio=0,
-):
+def unlock_planet(planet):
     planet_code = str(planet).strip().lower()
     template_path = f'config/icons/planets/locked/{planet_code}.png'
 
     planet_settings = get_planet_search_settings(planet_code)
-    config_start_grid = planet_settings['start_grid']
-    config_end_grid = planet_settings['end_grid']
-    config_vertical_trim = planet_settings['vertical_trim_ratio']
-    config_horizontal_trim = planet_settings['horizontal_trim_ratio']
+    start_search_cell = planet_settings['start_grid']
+    end_search_cell = planet_settings['end_grid']
+    vertical_trim_ratio = planet_settings['vertical_trim_ratio'] if planet_settings['vertical_trim_ratio'] is not None else 0.0
+    horizontal_trim_ratio = planet_settings['horizontal_trim_ratio'] if planet_settings['horizontal_trim_ratio'] is not None else 0.0
 
-    if config_start_grid is not None and config_end_grid is not None:
-        start_search_cell = config_start_grid
-        end_search_cell = config_end_grid
-
-    if config_vertical_trim is not None:
-        vertical_trim_ratio = config_vertical_trim
-    if config_horizontal_trim is not None:
-        horizontal_trim_ratio = config_horizontal_trim
+    if start_search_cell is None or end_search_cell is None:
+        message = (
+            f"missing planet region in config for {planet_code}; "
+            "expected planet_regions.<planet>.start_grid and end_grid"
+        )
+        print(message)
+        log_input_event('planet_search', '', '', f'planet={planet_code};status=config_region_missing')
+        return None
 
     search_region = get_grid_region(start_search_cell, end_search_cell)
     if search_region is None:
@@ -843,37 +837,30 @@ def run_gameplay_loop(
     Gameplay logic starts here.
     Setup/calibration should be completed before calling this function.
     """
-    """
-    #unlock_planet("Q8","Q9","p1",20,0)
-    #time.sleep(0.5)
+    
+    unlock_planet("p1")
+    time.sleep(0.5)
     sell_ores("copper", taskbar_search_start_grid, taskbar_search_end_grid)
     time.sleep(10)
-    upgrade("p1")
 
-    unlock_planet("R8","R8","p2",0,0)
+    unlock_planet("p2")
     time.sleep(0.5)
     sell_ores("iron", taskbar_search_start_grid, taskbar_search_end_grid)
     time.sleep(10)
-    upgrade("p2")
     
-
-    #open_resources_tab(taskbar_search_start_grid, taskbar_search_end_grid)
-    #unlock_planet("R10","S11","p3",10,10)
+    open_resources_tab(taskbar_search_start_grid, taskbar_search_end_grid)
+    unlock_planet("p3")
     time.sleep(10)
-    upgrade("p3")
 
-    unlock_planet("P11","Q11","p4",0,10)
+    unlock_planet("p4")
     time.sleep(0.5)
     sell_ores("lead", taskbar_search_start_grid, taskbar_search_end_grid)
     time.sleep(10)
-    upgrade("p4")
-    
+
     for planet in ['p1', 'p2', 'p3', 'p4']:
         upgrade(planet)
-    """
-    upgrade("p1") 
-    #We need to pass in a grid area for this. 
-    #How best to create a planet:grid map for upgrade and unlock_planet?
+
+    #Planet search regions/trims come from config/ipm_config.json -> planet_regions.
 
     #research_project("management",taskbar_search_start_grid,taskbar_search_end_grid)
     #research_project("crafter",taskbar_search_start_grid,taskbar_search_end_grid)
@@ -914,6 +901,13 @@ if __name__ == "__main__":
         print(f"Warning: could not reset search screenshot directory: {e}")
 
     game_log_path = os.path.join(base_dir, 'game_log.txt')
+    try:
+        if os.path.exists(game_log_path):
+            os.remove(game_log_path)
+            print(f"Reset game log file: {game_log_path}")
+    except Exception as e:
+        print(f"Warning: could not reset game log file: {e}")
+
     setup_game_log(game_log_path)
     runtime_config = load_runtime_config(base_dir)
     set_planet_search_config(runtime_config.get('planet_regions', {}))

@@ -610,8 +610,8 @@ def sell_ores(ore_name, taskbar_search_start_grid, taskbar_search_end_grid):
         )
     )
 
-    close_tab_region = get_grid_region(taskbar_search_start_grid, taskbar_search_end_grid)
-    close_tab_template_path = 'config/icons/tabs/open/resources_icon_open.png'
+    close_tab_region = get_grid_region('S8', 'V9')
+    close_tab_template_path = 'config/icons/tabs/resource_window.png'
     if close_tab_region is None:
         log_input_event(
             'ore_sell',
@@ -619,7 +619,7 @@ def sell_ores(ore_name, taskbar_search_start_grid, taskbar_search_end_grid):
             '',
             (
                 f'ore={ore_code};template={close_tab_template_path};status=close_tab_region_error;'
-                f'region={taskbar_search_start_grid}-{taskbar_search_end_grid}'
+                'region=S8-V9'
             )
         )
     else:
@@ -652,10 +652,10 @@ def sell_ores(ore_name, taskbar_search_start_grid, taskbar_search_end_grid):
                 '',
                 (
                     f'ore={ore_code};template={close_tab_template_path};status=resources_open_icon_not_found;'
-                    f'region={taskbar_search_start_grid}-{taskbar_search_end_grid}'
+                    'region=S8-V9'
                 )
             )
-            print("Could not find resources open icon to close tab")
+            print("Could not find resource window icon to close tab")
 
     print(f"Enabled auto-sell hold click for ore: {ore_code}")
     return detection
@@ -1077,6 +1077,10 @@ def game_window_setup(base_dir, runtime_config, run_setup=True):
 
     return None
 
+def upgrade(planet):
+        stat_upgrade(planet, "mining_rate")
+        stat_upgrade(planet, "ship_speed")
+        stat_upgrade(planet, "cargo")
 
 def run_gameplay_loop(
     currency_region,
@@ -1089,24 +1093,32 @@ def run_gameplay_loop(
     Gameplay logic starts here.
     Setup/calibration should be completed before calling this function.
     """
+    """
     #unlock_planet("Q8","Q9","p1",20,0)
-    #sell_ores("copper", taskbar_search_start_grid, taskbar_search_end_grid)
-    #unlock_planet("R8","R8","p2",0,0)
-    #sell_ores("iron", taskbar_search_start_grid, taskbar_search_end_grid)
-    #open_resources_tab(taskbar_search_start_grid, taskbar_search_end_grid)
-    #unlock_planet("R10","S11","p3",10,10)
-    #unlock_planet("P11","Q11","p4",0,10)
-    #sell_ores("lead", taskbar_search_start_grid, taskbar_search_end_grid)
-    #research_project("management",taskbar_search_start_grid,taskbar_search_end_grid)
-    research_project("crafter",taskbar_search_start_grid,taskbar_search_end_grid)
+    #time.sleep(0.5)
+    sell_ores("copper", taskbar_search_start_grid, taskbar_search_end_grid)
+    time.sleep(10)
+    upgrade("p1")
 
+    unlock_planet("R8","R8","p2",0,0)
+    time.sleep(0.5)
+    sell_ores("iron", taskbar_search_start_grid, taskbar_search_end_grid)
+    time.sleep(10)
+    upgrade("p2")
     """
-    planets = ["p1", "p2", "p3", "p4"]
-    for planet in planets:
-        stat_upgrade(planet, "mining_rate")
-        stat_upgrade(planet, "ship_speed")
-        stat_upgrade(planet, "cargo")
-    """
+
+    #open_resources_tab(taskbar_search_start_grid, taskbar_search_end_grid)
+    unlock_planet("R10","S11","p3",10,10)
+    time.sleep(10)
+    upgrade("p3")
+
+    unlock_planet("P11","Q11","p4",0,10)
+    time.sleep(0.5)
+    sell_ores("lead", taskbar_search_start_grid, taskbar_search_end_grid)
+    time.sleep(10)
+    upgrade("p4")
+    #research_project("management",taskbar_search_start_grid,taskbar_search_end_grid)
+    #research_project("crafter",taskbar_search_start_grid,taskbar_search_end_grid)
 
     print(f"\nMonitoring currency every 5 seconds in region: {currency_region}")
     print("Press 'q' to exit.")

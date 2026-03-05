@@ -879,3 +879,174 @@ C:\Users\timch\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\u
 Cash: $18,480,000
 Galaxy value: $21,710,000
 Exiting program...
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.677); applying X offset +290px
+Using zoom modifier key: ctrl
+Using scroll_start_grid: T9
+Using currency region grid bounds: M1 -> O2
+BlueStacks brought to focus
+Moved mouse to T9 (x=1950, y=850)
+Clicked to focus window before zoom
+Zoomed in to maximum
+Reference aligned within tolerance (30px): dx=7, dy=22
+Repositioned mouse to T9 before zoom (x=1950, y=850)
+Clicked to focus window before zoom (post-alignment)
+Zoomed out by configured amount
+Searching for p1 in Q8-Q9 with trim v=20.00% h=0.00%
+Unlocked planet icon not found for p1
+Clicked locked planet icon for p1 at (x=1637, y=783)
+resources tab opened, window confirmed
+Resources interface check passed
+Confirmed copper is autoselling
+Could not find resources open icon to close tab
+Enabled auto-sell hold click for ore: copper
+upgrading planet p1, stat mining_rate
+searching for planet p1
+searching for planet p1, found planet p1, opening planet p1
+searching for stat mining_rate
+stat not found: mining_rate
+upgrading planet p1, stat ship_speed
+searching for planet p1
+planet not found: p1
+upgrading planet p1, stat cargo
+searching for planet p1
+planet not found: p1
+Searching for p2 in R8-R8 with trim v=0.00% h=0.00%
+Planet icon not found: p2
+Resources interface appears already open (score=0.954)
+Resources interface check passed
+Ore icon not found: iron
+Traceback (most recent call last):
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\main.py", line 1168, in <module>
+    run_gameplay_loop(
+    ~~~~~~~~~~~~~~~~~^
+        currency_region=currency_region,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        taskbar_search_end_grid=taskbar_search_end_grid,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\main.py", line 1105, in run_gameplay_loop
+    time.sleep(10)
+    ~~~~~~~~~~^^^^
+KeyboardInterrupt
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.570); applying X offset +290px
+resources tab opened, window confirmed
+Resources interface check passed
+Confirmed copper is autoselling
+Could not find resources open icon to close tab
+Enabled auto-sell hold click for ore: copper
+upgrading planet p1, stat mining_rate
+searching for planet p1
+Traceback (most recent call last):
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\main.py", line 1168, in <module>
+    run_gameplay_loop(
+    ~~~~~~~~~~~~~~~~~^
+        currency_region=currency_region,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        taskbar_search_end_grid=taskbar_search_end_grid,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\main.py", line 1100, in run_gameplay_loop
+    upgrade("p1")
+    ~~~~~~~^^^^^^
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\main.py", line 1081, in upgrade
+    stat_upgrade(planet, "mining_rate")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\main.py", line 683, in stat_upgrade
+    planet_detection = find_template_match(
+        template_path=planet_template_path,
+        search_region=None,
+        confidence=0.75,
+    )
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\utils.py", line 350, in find_template_match
+    return _find_template_match(
+        template_path=template_path,
+        search_region=search_region,
+        confidence=confidence,
+    )
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\utils.py", line 120, in _find_template_match
+    result = cv2.matchTemplate(screenshot_gray, template_img, cv2.TM_CCOEFF_NORMED)
+KeyboardInterrupt
+Logging console output to: c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\game_log.txt
+Ad banner detected via left_strip (score=0.677); applying X offset +290px
+resources tab opened, window confirmed
+Resources interface check passed
+Confirmed copper is autoselling
+Resources window closed
+Enabled auto-sell hold click for ore: copper
+upgrading planet p1, stat mining_rate
+searching for planet p1
+planet not found: p1
+upgrading planet p1, stat ship_speed
+searching for planet p1
+planet not found: p1
+upgrading planet p1, stat cargo
+searching for planet p1
+planet not found: p1
+Searching for p2 in R8-R8 with trim v=0.00% h=0.00%
+Found unlocked planet icon for p2
+Closed planet tab for p2
+Clicked locked planet icon for p2 at (x=1752, y=745)
+resources tab opened, window confirmed
+Resources interface check passed
+Confirmed iron is autoselling
+Resources window closed
+Enabled auto-sell hold click for ore: iron
+upgrading planet p2, stat mining_rate
+searching for planet p2
+searching for planet p2, found planet p2, opening planet p2
+searching for stat mining_rate
+searching for stat mining_rate, found stat mining_rate, moving right 400px, moving down 100px
+clicking 1 time, upgrade complete
+closing planet tab
+upgrading planet p2, stat ship_speed
+searching for planet p2
+searching for planet p2, found planet p2, opening planet p2
+searching for stat ship_speed
+searching for stat ship_speed, found stat ship_speed, moving right 400px, moving down 100px
+clicking 1 time, upgrade complete
+closing planet tab
+upgrading planet p2, stat cargo
+searching for planet p2
+searching for planet p2, found planet p2, opening planet p2
+searching for stat cargo
+searching for stat cargo, found stat cargo, moving right 400px, moving down 100px
+clicking 1 time, upgrade complete
+closing planet tab
+Searching for p3 in R10-S11 with trim v=10.00% h=10.00%
+Unlocked planet icon not found for p3
+Clicked locked planet icon for p3 at (x=1782, y=1004)
+upgrading planet p3, stat mining_rate
+searching for planet p3
+planet not found: p3
+upgrading planet p3, stat ship_speed
+searching for planet p3
+planet not found: p3
+upgrading planet p3, stat cargo
+searching for planet p3
+planet not found: p3
+Searching for p4 in P11-Q11 with trim v=0.00% h=10.00%
+Planet icon not found: p4
+resources tab opened, window confirmed
+Resources interface check passed
+Ore icon not found: lead
+Traceback (most recent call last):
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\main.py", line 1168, in <module>
+    run_gameplay_loop(
+    ~~~~~~~~~~~~~~~~~^
+        currency_region=currency_region,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        taskbar_search_end_grid=taskbar_search_end_grid,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "c:\Users\timch\OneDrive\Desktop\ipm_code\ipm_bot\bot_program\main.py", line 1116, in run_gameplay_loop
+    time.sleep(10)
+    ~~~~~~~~~~^^^^
+KeyboardInterrupt

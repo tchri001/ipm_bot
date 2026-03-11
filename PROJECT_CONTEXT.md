@@ -36,3 +36,5 @@ Python automation bot for a mobile game running in BlueStacks App Player.
 
 ## Notes
 - User preference: implement only exactly specified logic, no extra fallback behavior unless explicitly requested.
+- Session-end trigger configured in `.github/copilot-instructions.md` using phrases like `end session` to run context + memory updates.
+- Additional session-end trigger phrases configured: `cheers dude`, `thanks for the help`, `see ya`.

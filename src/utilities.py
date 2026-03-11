@@ -3,6 +3,7 @@ import os
 import threading
 import time
 import msvcrt
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -10,6 +11,24 @@ import pyautogui
 
 
 TARGET_WINDOW_TITLE = "BlueStacks App Player"
+
+
+def _log_path() -> Path:
+	return Path(__file__).resolve().parent.parent / "game_log.txt"
+
+
+def initialize_game_log() -> None:
+	"""Create a brand new game log for the current run."""
+	path = _log_path()
+	with path.open("w", encoding="utf-8") as handle:
+		handle.write(f"[{datetime.now().isoformat(timespec='seconds')}] New run started.\n")
+
+
+def write_game_log(message: str) -> None:
+	"""Append a timestamped line to game_log.txt."""
+	path = _log_path()
+	with path.open("a", encoding="utf-8") as handle:
+		handle.write(f"[{datetime.now().isoformat(timespec='seconds')}] {message}\n")
 
 
 def _quit_on_q_loop() -> None:
@@ -58,9 +77,11 @@ def _find_target_window() -> Optional[Any]:
 
 def open_and_focus_bluestacks_app_player() -> dict[str, int]:
 	"""Focus existing BlueStacks App Player window and store bounds in config.json."""
+	write_game_log("Starting BlueStacks App Player open/focus check.")
 	window = _find_target_window()
 
 	if window is None:
+		write_game_log("BlueStacks App Player window not found.")
 		raise RuntimeError("BlueStacks App Player window was not found.")
 
 	try:
@@ -77,10 +98,82 @@ def open_and_focus_bluestacks_app_player() -> dict[str, int]:
 		"width": int(window.width),
 		"height": int(window.height),
 	}
+	write_game_log(
+		"Recorded initial window bounds: "
+		f"x={bounds['x']}, y={bounds['y']}, width={bounds['width']}, height={bounds['height']}"
+	)
+
+	# Stage 1: Use bs_icon position in the top 5% strip to detect ad-banner state.
+	assets_root = Path(__file__).resolve().parent.parent / "assets"
+	bs_icon_path = assets_root / "reference" / "bs_icon.png"
+	if not bs_icon_path.exists():
+		raise FileNotFoundError(f"Reference icon not found: {bs_icon_path}")
+
+	top_strip_height = max(1, int(bounds["height"] * 0.05))
+	icon_match = pyautogui.locateOnScreen(
+		str(bs_icon_path),
+		confidence=0.75,
+		region=(bounds["x"], bounds["y"], bounds["width"], top_strip_height),
+	)
+	if icon_match is None:
+		write_game_log("Failed to detect bs_icon.png in top 5% strip.")
+		raise RuntimeError("Could not find bs_icon.png in the top 5% of the game window.")
+
+	icon_mid_x = int(icon_match.left + (icon_match.width / 2))
+	icon_relative_x = icon_mid_x - bounds["x"]
+	has_ad_banner = icon_relative_x > int(bounds["width"] * 0.2)
+	write_game_log(f"Ad banner detected: {has_ad_banner}")
+
+	# Stage 2: If banner exists, find the dark->light vertical transition on top 10px.
+	if has_ad_banner:
+		top_line_height = min(10, bounds["height"])
+		top_line_image = pyautogui.screenshot(
+			region=(bounds["x"], bounds["y"], bounds["width"], top_line_height)
+		).convert("RGB")
+		pixels = top_line_image.load()
+
+		column_brightness: list[float] = []
+		for x_index in range(bounds["width"]):
+			column_sum = 0.0
+			for y_index in range(top_line_height):
+				r, g, b = pixels[x_index, y_index]
+				column_sum += (r + g + b) / 3.0
+			column_brightness.append(column_sum / float(top_line_height))
+
+		banner_width = None
+		for x_index in range(6, bounds["width"] - 12):
+			before = sum(column_brightness[x_index - 6 : x_index]) / 6.0
+			after = sum(column_brightness[x_index : x_index + 10]) / 10.0
+			if (after - before) >= 12.0:
+				banner_width = x_index
+				break
+
+		if banner_width is None:
+			write_game_log("Failed to detect ad-banner boundary in top 10px color scan.")
+			raise RuntimeError("Could not detect ad-banner boundary from top 10px color transition.")
+
+		if banner_width >= bounds["width"]:
+			write_game_log(f"Invalid detected ad-banner width: {banner_width}")
+			raise RuntimeError("Detected ad-banner width is invalid.")
+
+		old_x = bounds["x"]
+		old_width = bounds["width"]
+		bounds["x"] += int(banner_width)
+		bounds["width"] -= int(banner_width)
+		write_game_log(
+			"Applied ad-banner adjustment: "
+			f"banner_width={banner_width}, x {old_x}->{bounds['x']}, width {old_width}->{bounds['width']}"
+		)
+	else:
+		write_game_log("No ad banner adjustment needed.")
 
 	config = _load_config()
 	config["game_window"] = bounds
 	_save_config(config)
+	write_game_log(
+		"Saved final game_window bounds: "
+		f"x={bounds['x']}, y={bounds['y']}, width={bounds['width']}, height={bounds['height']}"
+	)
 
 	return bounds
 
@@ -140,6 +233,13 @@ def find_image_in_game_window(
 		str(image_path),
 		confidence=confidence,
 		region=(region_x1, region_y1, region_width, region_height),
+	)
+	write_game_log(
+		"image_search "
+		f"image={image_name} "
+		f"region=({region_x1},{region_y1},{region_width},{region_height}) "
+		f"confidence={confidence} "
+		f"found={match is not None}"
 	)
 	if match is None:
 		raise RuntimeError(f"Image not found in game window: {image_name}")

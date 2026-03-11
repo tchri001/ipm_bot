@@ -1,0 +1,6 @@
+[2026-03-11T23:02:46] New run started.
+[2026-03-11T23:02:46] Starting BlueStacks App Player open/focus check.
+[2026-03-11T23:02:46] Recorded initial window bounds: x=914, y=330, width=1212, height=1308
+[2026-03-11T23:02:46] Ad banner detected: True
+[2026-03-11T23:02:46] Applied ad-banner adjustment: banner_width=440, x 914->1354, width 1212->772
+[2026-03-11T23:02:46] Saved final game_window bounds: x=1354, y=330, width=772, height=1308

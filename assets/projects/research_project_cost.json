@@ -1,0 +1,102 @@
+{
+  "projects": {
+    "management": {
+      "materials": [
+        {
+          "name": "copper",
+          "category": "ore",
+          "quantity": 200
+        },
+        {
+          "name": "iron",
+          "category": "ore",
+          "quantity": 25
+        }
+      ]
+    },
+    "smelter": {
+      "materials": [
+        {
+          "name": "copper",
+          "category": "ore",
+          "quantity": 300
+        },
+        {
+          "name": "iron",
+          "category": "ore",
+          "quantity": 125
+        }
+      ]
+    },
+    "asteroid_miner": {
+      "materials": [
+        {
+          "name": "copper",
+          "category": "ore",
+          "quantity": 200
+        },
+        {
+          "name": "iron",
+          "category": "ore",
+          "quantity": 50
+        }
+      ]
+    },
+    "rover": {
+      "materials": [
+        {
+          "name": "copper_wire",
+          "category": "item",
+          "quantity": 5
+        }
+      ]
+    },
+    "telescope_1": {
+      "materials": [
+        {
+          "name": "iron",
+          "category": "ore",
+          "quantity": 750
+        },
+        {
+          "name": "copper",
+          "category": "bar",
+          "quantity": 2
+        }
+      ]
+    },
+    "crafter": {
+      "materials": [
+        {
+          "name": "lead",
+          "category": "ore",
+          "quantity": 2500
+        },
+        {
+          "name": "iron",
+          "category": "bar",
+          "quantity": 2
+        }
+      ]
+    },
+    "template": {
+      "materials": [
+        {
+          "name": "copper",
+          "category": "ore",
+          "quantity": 100
+        },
+        {
+          "name": "copper",
+          "category": "bar",
+          "quantity": 100
+        },
+        {
+          "name": "copper_wire",
+          "category": "item",
+          "quantity": 100
+        }
+      ]
+    }
+  }
+}

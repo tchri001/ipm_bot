@@ -1,2 +1,6 @@
-venv/
-gc_bot.log
+__pycache__/
+*.pyc
+.venv/
+.env
+*.log
+.vscode/

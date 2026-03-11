@@ -4,9 +4,9 @@ Layered Python automation framework for controlling a mobile game running in an 
 
 ## Architecture
 
-- `low_level`: Technical primitives (screen capture, template matching, mouse/keyboard control).
-- `mid_level`: Game interactions composed from low-level primitives.
-- `high_level`: Gameplay policy and orchestration.
+- `utilities`: Technical primitives (screen capture, template matching, mouse/keyboard control).
+- `interaction`: Game interactions composed from low-level primitives.
+- `gameplay`: Gameplay policy and orchestration.
 
 ## Quick Start
 
@@ -18,6 +18,7 @@ Layered Python automation framework for controlling a mobile game running in an 
 
 ## Notes
 
-- Keep game-specific behavior out of `low_level`.
-- Keep strategy decisions in `high_level`.
-- Keep repeated interaction patterns in `mid_level`.
+Currently opens the app, records game window location and size, adjusts the window details based on whether or not an ad banner is present.
+Image detection function saves a screenshot of the search region.
+Logging starts new on each run.
+Press 'q' to terminate the program at any point.

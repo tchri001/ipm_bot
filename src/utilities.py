@@ -14,7 +14,7 @@ TARGET_WINDOW_TITLE = "BlueStacks App Player"
 
 
 def _log_path() -> Path:
-	return Path(__file__).resolve().parent.parent / "game_log.txt"
+	return Path(__file__).resolve().parent.parent / "debugging" / "game_log.txt"
 
 
 def initialize_game_log() -> None:
@@ -234,12 +234,21 @@ def find_image_in_game_window(
 		confidence=confidence,
 		region=(region_x1, region_y1, region_width, region_height),
 	)
+	search_image = pyautogui.screenshot(region=(region_x1, region_y1, region_width, region_height))
+	searches_dir = Path(__file__).resolve().parent.parent / "debugging" / "image_searches"
+	searches_dir.mkdir(parents=True, exist_ok=True)
+	found = match is not None
+	image_stem_for_file = Path(image_name).stem
+	image_name_for_file = image_stem_for_file.replace("/", "_").replace("\\", "_")
+	region_for_file = f"{region_x1}-{region_y1}-{region_width}-{region_height}"
+	search_filename = f"{image_name_for_file}_{region_for_file}_{found}.png"
+	search_image.save(searches_dir / search_filename)
 	write_game_log(
 		"image_search "
 		f"image={image_name} "
 		f"region=({region_x1},{region_y1},{region_width},{region_height}) "
 		f"confidence={confidence} "
-		f"found={match is not None}"
+		f"found={found}"
 	)
 	if match is None:
 		raise RuntimeError(f"Image not found in game window: {image_name}")

@@ -1,0 +1,21 @@
+main.py
+- main
+
+utilities.py
+- _log_path
+- initialize_game_log
+- write_game_log
+- _quit_on_q_loop
+- start_quit_listener_thread
+- _config_path
+- _load_config
+- _save_config
+- _find_target_window
+- open_and_focus_bluestacks_app_player
+- find_image_in_game_window
+
+interaction.py
+- None
+
+gameplay.py
+- None

@@ -75,6 +75,60 @@ def _find_target_window() -> Optional[Any]:
 	return windows[0] if windows else None
 
 
+def _detect_content_bounds_from_mid_strip(bounds: dict[str, int]) -> tuple[int, int]:
+	"""Detect non-black content bounds from a 10px strip at 50% window height."""
+	strip_height = min(10, bounds["height"])
+	if strip_height <= 0:
+		raise RuntimeError("Window height is too small for black-band detection.")
+
+	window_top = bounds["y"]
+	window_bottom = bounds["y"] + bounds["height"]
+	mid_y = bounds["y"] + int(bounds["height"] * 0.5)
+	strip_y = max(window_top, min(mid_y - (strip_height // 2), window_bottom - strip_height))
+
+	strip_image = pyautogui.screenshot(
+		region=(bounds["x"], strip_y, bounds["width"], strip_height)
+	).convert("RGB")
+	pixels = strip_image.load()
+
+	column_brightness: list[float] = []
+	for x_index in range(bounds["width"]):
+		column_sum = 0.0
+		for y_index in range(strip_height):
+			r, g, b = pixels[x_index, y_index]
+			column_sum += (r + g + b) / 3.0
+		column_brightness.append(column_sum / float(strip_height))
+
+	edge_sample_width = max(1, min(20, bounds["width"] // 8))
+	left_edge_avg = sum(column_brightness[:edge_sample_width]) / float(edge_sample_width)
+	right_edge_avg = sum(column_brightness[-edge_sample_width:]) / float(edge_sample_width)
+	black_reference = max(left_edge_avg, right_edge_avg)
+	content_threshold = min(80.0, black_reference + 18.0)
+
+	min_run_length = 5
+	left_content_x = None
+	for x_index in range(0, bounds["width"] - min_run_length + 1):
+		if all(column_brightness[i] > content_threshold for i in range(x_index, x_index + min_run_length)):
+			left_content_x = x_index
+			break
+
+	right_content_x = None
+	for x_index in range(bounds["width"] - 1, min_run_length - 2, -1):
+		if all(column_brightness[i] > content_threshold for i in range(x_index - min_run_length + 1, x_index + 1)):
+			right_content_x = x_index
+			break
+
+	if left_content_x is None or right_content_x is None or right_content_x <= left_content_x:
+		raise RuntimeError("Could not detect portrait content bounds from midpoint strip.")
+
+	write_game_log(
+		"Mid-strip content bounds detected: "
+		f"strip_y={strip_y}, threshold={content_threshold:.2f}, "
+		f"left={left_content_x}, right={right_content_x}"
+	)
+	return left_content_x, right_content_x
+
+
 def open_and_focus_bluestacks_app_player() -> dict[str, int]:
 	"""Focus existing BlueStacks App Player window and store bounds in config.json."""
 	write_game_log("Starting BlueStacks App Player open/focus check.")
@@ -98,6 +152,8 @@ def open_and_focus_bluestacks_app_player() -> dict[str, int]:
 		"width": int(window.width),
 		"height": int(window.height),
 	}
+	time.sleep(10)
+	write_game_log("Applied startup settle delay: 10s before location checks.")
 	write_game_log(
 		"Recorded initial window bounds: "
 		f"x={bounds['x']}, y={bounds['y']}, width={bounds['width']}, height={bounds['height']}"
@@ -112,7 +168,7 @@ def open_and_focus_bluestacks_app_player() -> dict[str, int]:
 	top_strip_height = max(1, int(bounds["height"] * 0.05))
 	icon_match = pyautogui.locateOnScreen(
 		str(bs_icon_path),
-		confidence=0.75,
+		confidence=0.65,
 		region=(bounds["x"], bounds["y"], bounds["width"], top_strip_height),
 	)
 	if icon_match is None:
@@ -166,6 +222,20 @@ def open_and_focus_bluestacks_app_player() -> dict[str, int]:
 		)
 	else:
 		write_game_log("No ad banner adjustment needed.")
+
+	# Stage 3: Remove left/right black side bands by scanning a 10px strip at 50% height.
+	content_left_x, content_right_x = _detect_content_bounds_from_mid_strip(bounds)
+	left_black_band_width = int(content_left_x)
+	right_black_band_width = int((bounds["width"] - 1) - content_right_x)
+	old_x = bounds["x"]
+	old_width = bounds["width"]
+	bounds["x"] += left_black_band_width
+	bounds["width"] = int(content_right_x - content_left_x + 1)
+	write_game_log(
+		"Applied black-band adjustment: "
+		f"left_black={left_black_band_width}, right_black={right_black_band_width}, "
+		f"x {old_x}->{bounds['x']}, width {old_width}->{bounds['width']}"
+	)
 
 	config = _load_config()
 	config["game_window"] = bounds

@@ -91,30 +91,32 @@ def _detect_content_bounds_from_mid_strip(bounds: dict[str, int]) -> tuple[int, 
 	).convert("RGB")
 	pixels = strip_image.load()
 
-	column_brightness: list[float] = []
+	# Strict black detection so dark blue game art is not treated as black band.
+	black_channel_max = 28
+	black_brightness_max = 26
+	black_ratio_threshold = 0.9
+
+	column_is_black: list[bool] = []
 	for x_index in range(bounds["width"]):
-		column_sum = 0.0
+		black_pixel_count = 0
 		for y_index in range(strip_height):
 			r, g, b = pixels[x_index, y_index]
-			column_sum += (r + g + b) / 3.0
-		column_brightness.append(column_sum / float(strip_height))
-
-	edge_sample_width = max(1, min(20, bounds["width"] // 8))
-	left_edge_avg = sum(column_brightness[:edge_sample_width]) / float(edge_sample_width)
-	right_edge_avg = sum(column_brightness[-edge_sample_width:]) / float(edge_sample_width)
-	black_reference = max(left_edge_avg, right_edge_avg)
-	content_threshold = min(80.0, black_reference + 18.0)
+			avg = (r + g + b) / 3.0
+			if r <= black_channel_max and g <= black_channel_max and b <= black_channel_max and avg <= black_brightness_max:
+				black_pixel_count += 1
+		black_ratio = black_pixel_count / float(strip_height)
+		column_is_black.append(black_ratio >= black_ratio_threshold)
 
 	min_run_length = 5
 	left_content_x = None
 	for x_index in range(0, bounds["width"] - min_run_length + 1):
-		if all(column_brightness[i] > content_threshold for i in range(x_index, x_index + min_run_length)):
+		if all(not column_is_black[i] for i in range(x_index, x_index + min_run_length)):
 			left_content_x = x_index
 			break
 
 	right_content_x = None
 	for x_index in range(bounds["width"] - 1, min_run_length - 2, -1):
-		if all(column_brightness[i] > content_threshold for i in range(x_index - min_run_length + 1, x_index + 1)):
+		if all(not column_is_black[i] for i in range(x_index - min_run_length + 1, x_index + 1)):
 			right_content_x = x_index
 			break
 
@@ -123,7 +125,8 @@ def _detect_content_bounds_from_mid_strip(bounds: dict[str, int]) -> tuple[int, 
 
 	write_game_log(
 		"Mid-strip content bounds detected: "
-		f"strip_y={strip_y}, threshold={content_threshold:.2f}, "
+		f"strip_y={strip_y}, black_channel_max={black_channel_max}, "
+		f"black_brightness_max={black_brightness_max}, black_ratio_threshold={black_ratio_threshold:.2f}, "
 		f"left={left_content_x}, right={right_content_x}"
 	)
 	return left_content_x, right_content_x

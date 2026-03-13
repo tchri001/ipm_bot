@@ -1,4 +1,9 @@
-[2026-03-13T00:19:22] New run started.
-[2026-03-13T00:19:22] Starting BlueStacks App Player open/focus check.
-[2026-03-13T00:19:32] Applied startup settle delay: 10s before location checks.
-[2026-03-13T00:19:32] Recorded initial window bounds: x=792, y=194, width=1334, height=1444
+[2026-03-14T00:36:44] New run started.
+[2026-03-14T00:36:44] Starting BlueStacks App Player open/focus check.
+[2026-03-14T00:36:54] Applied startup settle delay: 10s before location checks.
+[2026-03-14T00:36:54] Recorded initial window bounds: x=850, y=268, width=1212, height=1308
+[2026-03-14T00:36:54] Ad banner detected: True
+[2026-03-14T00:36:54] Applied ad-banner adjustment: banner_width=440, x 850->1290, width 1212->772
+[2026-03-14T00:36:54] Mid-strip content bounds detected: strip_y=917, black_channel_max=28, black_brightness_max=26, black_ratio_threshold=0.90, left=0, right=771
+[2026-03-14T00:36:54] Applied black-band adjustment: left_black=0, right_black=0, x 1290->1290, width 772->772
+[2026-03-14T00:36:54] Saved final game_window bounds: x=1290, y=268, width=772, height=1308

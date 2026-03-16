@@ -251,6 +251,102 @@ def open_and_focus_bluestacks_app_player() -> dict[str, int]:
 	return bounds
 
 
+def grid_to_screen_center(
+	x_start: float,
+	x_end: float,
+	y_start: float,
+	y_end: float,
+) -> tuple[int, int]:
+	"""Convert grid percentage bounds to the screen pixel center of that region.
+
+	Parameters
+	----------
+	x_start : float
+		Left edge of the region as a percentage of the game window width (0-100).
+	x_end : float
+		Right edge of the region as a percentage of the game window width (0-100).
+	y_start : float
+		Top edge of the region as a percentage of the game window height (0-100).
+	y_end : float
+		Bottom edge of the region as a percentage of the game window height (0-100).
+
+	Returns
+	-------
+	tuple[int, int]
+		(x, y) screen pixel coordinates of the center of the defined region.
+	"""
+	config = _load_config()
+	win = config["game_window"]
+	win_x: int = int(win["x"])
+	win_y: int = int(win["y"])
+	win_w: int = int(win["width"])
+	win_h: int = int(win["height"])
+
+	px_x1 = win_x + round(win_w * x_start / 100)
+	px_x2 = win_x + round(win_w * x_end / 100)
+	px_y1 = win_y + round(win_h * y_start / 100)
+	px_y2 = win_y + round(win_h * y_end / 100)
+
+	center_x = (px_x1 + px_x2) // 2
+	center_y = (px_y1 + px_y2) // 2
+
+	write_game_log(
+		f"grid_to_screen_center: region x={x_start}-{x_end}% y={y_start}-{y_end}% "
+		f"-> px region ({px_x1},{px_y1})-({px_x2},{px_y2}) -> center ({center_x},{center_y})"
+	)
+
+	return center_x, center_y
+
+
+def move_mouse_to_screen_coordinate(x: int, y: int) -> None:
+	"""Move the mouse cursor to an absolute screen coordinate."""
+	pyautogui.moveTo(int(x), int(y))
+	write_game_log(f"move_mouse_to_screen_coordinate: moved mouse to ({int(x)},{int(y)})")
+
+
+def click_mouse() -> None:
+	"""Click the mouse at the current cursor position."""
+	pyautogui.click()
+	write_game_log("click_mouse: clicked at current cursor position")
+
+
+def ctrl_scroll_mouse_wheel(scroll_count: int, scroll_steps: int, direction: str) -> None:
+	"""Hold Ctrl and scroll the mouse wheel repeatedly in the requested direction."""
+	direction_normalized = direction.strip().lower()
+	if scroll_count <= 0:
+		raise ValueError("scroll_count must be greater than 0.")
+	if scroll_steps <= 0:
+		raise ValueError("scroll_steps must be greater than 0.")
+	if direction_normalized not in {"up", "down"}:
+		raise ValueError("direction must be 'up' or 'down'.")
+
+	signed_steps = scroll_steps if direction_normalized == "up" else -scroll_steps
+	write_game_log(
+		f"ctrl_scroll_mouse_wheel: count={scroll_count}, steps={scroll_steps}, direction={direction_normalized}"
+	)
+
+	pyautogui.keyDown("ctrl")
+	try:
+		for _ in range(scroll_count):
+			pyautogui.scroll(signed_steps)
+			time.sleep(0.2)
+	finally:
+		pyautogui.keyUp("ctrl")
+
+
+def click_grid_region_center(
+	x_start: float,
+	x_end: float,
+	y_start: float,
+	y_end: float,
+) -> tuple[int, int]:
+	"""Click the center point of a grid-defined region and return that screen coordinate."""
+	center_x, center_y = grid_to_screen_center(x_start, x_end, y_start, y_end)
+	move_mouse_to_screen_coordinate(center_x, center_y)
+	click_mouse()
+	return center_x, center_y
+
+
 def find_image_in_game_window(
 	image_name: str,
 	confidence: float = 0.75,

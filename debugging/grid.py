@@ -14,7 +14,8 @@ import json
 from pathlib import Path
 import tkinter as tk
 
-from PIL import ImageGrab
+import mss
+import mss.tools
 
 
 def load_game_window_bounds(config_path: Path) -> tuple[int, int, int, int]:
@@ -112,9 +113,10 @@ def main() -> None:
 		# Capture the configured game-window rectangle including the visible overlay.
 		timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 		out_path = screenshot_dir / f"grid_overlay_{timestamp}.png"
-		bbox = (overlay_x, overlay_y, overlay_x + width, overlay_y + height)
-		image = ImageGrab.grab(bbox=bbox)
-		image.save(out_path)
+		monitor = {"left": overlay_x, "top": overlay_y, "width": width, "height": height}
+		with mss.mss() as sct:
+			screenshot = sct.grab(monitor)
+			mss.tools.to_png(screenshot.rgb, screenshot.size, output=str(out_path))
 		print(f"Saved overlay screenshot: {out_path}")
 
 	def on_key_press(event: tk.Event) -> None:

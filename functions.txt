@@ -1,18 +1,24 @@
 main.py
-- main
+- main() -> None
 
 utilities.py
-- _log_path
-- initialize_game_log
-- write_game_log
-- _quit_on_q_loop
-- start_quit_listener_thread
-- _config_path
-- _load_config
-- _save_config
-- _find_target_window
-- open_and_focus_bluestacks_app_player
-- find_image_in_game_window
+- _log_path() -> Path
+- initialize_game_log() -> None
+- write_game_log(message: str) -> None
+- _quit_on_q_loop() -> None
+- start_quit_listener_thread() -> threading.Thread
+- _config_path() -> Path
+- _load_config() -> dict[str, Any]
+- _save_config(config: dict[str, Any]) -> None
+- _find_target_window() -> Optional[Any]
+- _detect_content_bounds_from_mid_strip(bounds: dict[str, int]) -> tuple[int, int]
+- open_and_focus_bluestacks_app_player() -> dict[str, int]
+- grid_to_screen_center(x_start: float, x_end: float, y_start: float, y_end: float) -> tuple[int, int]
+- move_mouse_to_screen_coordinate(x: int, y: int) -> None
+- click_mouse() -> None
+- ctrl_scroll_mouse_wheel(scroll_count: int, scroll_steps: int, direction: str) -> None
+- click_grid_region_center(x_start: float, x_end: float, y_start: float, y_end: float) -> tuple[int, int]
+- find_image_in_game_window(image_name: str, confidence: float = 0.75, x_start: float = 0, x_end: float = 100, y_start: float = 0, y_end: float = 100) -> tuple[int, int]
 
 interaction.py
 - None
